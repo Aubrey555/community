@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nowcoder.community.dao.DiscussPostMapper">   <!--此处给出该映射文件对应的mapper接口的全类名-->
+    <!--声明的公用sql-->
+    <sql id="selectFields">
+        id, user_id, title, content, type, status, create_time, comment_count, score
+    </sql>
+    <!--分页显示: 通过用户id返回该用户的帖子并分页显示(个人主页的帖子)
+                List<DiscussPost> selectDiscussPosts(int userId,int offset,int limit);
+                使用resultType属性声明返回的类型,对于List集合,java可以自动检测,无需声明(map需要)-->
+    <select id="selectDiscussPosts" resultType="DiscussPost">
+        select <include refid="selectFields"></include>
+        from discuss_post
+        where status != 2       /*status=2表示帖子被拉黑,不能显示拉黑的帖子*/
+        <if test="userId!=0">    /*动态sql语句,只有用户的userId不为0时,拼接该用户id*/
+            and user_id = #{userId}
+        </if>
+        order by type desc, create_time desc    /*按照帖子类型进行排序(倒序,即精华帖在前),帖子类型一致时,按照创建时间排序*/
+        limit #{offset}, #{limit}           /*分页显示数据,传入方法的参数:当前页的页码,每页需要显示的条数*/
+    </select>
+
+    <!--通过用户id查询该用户的帖子总数(@Param注解中的属性表示为当前参数的userId的别名)
+            int selectDiscussPostRows(@Param("userId") int userId);
+             传入用户的唯一标识userId,计算该用户的所有帖子,即记录每个帖子的id总数-->
+    <select id="selectDiscussPostRows" resultType="int">
+        select count(id)
+        from discuss_post
+        where status != 2
+        <if test="userId!=0">
+            and user_id = #{userId}
+        </if>
+    </select>
+
+</mapper>
