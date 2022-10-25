@@ -10,8 +10,8 @@
 </head>
 <body>	
 	<div class="nk-container">
-		<!-- 头部 -->
-		<header class="bg-dark sticky-top">
+		<!-- 头部 :  用于完成首页,消息,注册,登录四部分超链接的跳转-->
+		<header class="bg-dark sticky-top" th:fragment="header">	<!--通过th:fragment属性,为此<header>标签取名,以便于此头部内容在其他页面可以进行复用-->
 			<div class="container">
 				<!-- 导航 -->
 				<nav class="navbar navbar-expand-lg navbar-dark">
@@ -24,16 +24,16 @@
 					<div class="collapse navbar-collapse" id="navbarSupportedContent">
 						<ul class="navbar-nav mr-auto">
 							<li class="nav-item ml-3 btn-group-vertical">
-								<a class="nav-link" href="index.html">首页</a>
+								<a class="nav-link" th:href="@{/index}">首页</a>	<!--完成页面跳转功能-->
 							</li>
 							<li class="nav-item ml-3 btn-group-vertical">
-								<a class="nav-link position-relative" href="site/letter.html">消息<span class="badge badge-danger">12</span></a>
+								<a class="nav-link position-relative" th:href="@{/letter}">消息<span class="badge badge-danger">12</span></a><!--完成页面跳转功能-->
 							</li>
 							<li class="nav-item ml-3 btn-group-vertical">
-								<a class="nav-link" href="site/register.html">注册</a>
+								<a class="nav-link" th:href="@{/register}">注册</a><!--完成页面跳转功能-->
 							</li>
 							<li class="nav-item ml-3 btn-group-vertical">
-								<a class="nav-link" href="site/login.html">登录</a>
+								<a class="nav-link" th:href="@{/login}">登录</a><!--完成页面跳转功能-->
 							</li>
 							<li class="nav-item ml-3 btn-group-vertical dropdown">
 								<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

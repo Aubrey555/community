@@ -1,18 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
-	<link rel="stylesheet" href="../css/global.css" />
-	<link rel="stylesheet" href="../css/login.css" />
+	<link rel="stylesheet" th:href="@{/css/global.css}" />	<!--修改为绝对路径-->
+	<link rel="stylesheet" th:href="@{/css/login.css}" />
 	<title>牛客网-注册</title>
 </head>
 <body>
 	<div class="nk-container">
 		<!-- 头部 -->
-		<header class="bg-dark sticky-top">
+		<header class="bg-dark sticky-top" th:replace="index::header">
+			<!--使用th:replace属性,将此标签<header>的内容替换为index.html页面下的th:fragment=header标签的内容-->
 			<div class="container">
 				<!-- 导航 -->
 				<nav class="navbar navbar-expand-lg navbar-dark">
@@ -63,12 +64,22 @@
 		<div class="main">
 			<div class="container pl-5 pr-5 pt-3 pb-3 mt-3 mb-3">
 				<h3 class="text-center text-info border-bottom pb-3">注&nbsp;&nbsp;册</h3>
-				<form class="mt-5">
+				<form class="mt-5" method="post" th:action="@{/register}">	<!--表单的提交方式 和 提交的请求路径@{/register},即返回到注册界面-->
 					<div class="form-group row">
 						<label for="username" class="col-sm-2 col-form-label text-right">账号:</label>
 						<div class="col-sm-10">
-							<input type="text" class="form-control" id="username" placeholder="请输入您的账号!" required>
-							<div class="invalid-feedback">
+							<!--通过对如下的<input>标签进行处理,动态判断:如果是首次访问注册页面,则不会具有提示信息;如果注册信息错误,跳转到该页面会显示提示信息-->
+							<!--1.th:class属性, 基于bootstrap开发的页面,下面<div>提示信息为动态判断进行显示:
+									即只有此处class中进行判断,只有usernameMsg!=null,表示用户信息输入有错,则带上is-invalid属性,对非法信息进行提示,否则为空-->
+							<!--2.th:value属性,当注册信息有误时,返回到该界面,当前请求域中仍然携带上一次表单提交请求的User对象(在Model中),因此默认值th:value为user.username
+										而当首次点击注册功能时,此时User对象为空,则默认值th:value为空-->
+							<!--3.此处name="username"和User对象的username属性名相同,同名原则下,会对User对象进行自动赋值(下面的password 和 email一致)-->
+							<input type="text"
+								   th:class="|form-control ${usernameMsg!=null?'is-invalid':''}|"
+								   th:value="${user!=null?user.username:''}"
+								   id="username" name="username" placeholder="请输入您的账号!" required>
+							<!--4.<div>标签 显示Login控制器中返回的错误信息,在请求域Model中(首次显示不存在)-->
+							<div class="invalid-feedback" th:text="${usernameMsg}">
 								该账号已存在!
 							</div>
 						</div>
@@ -76,8 +87,12 @@
 					<div class="form-group row mt-4">
 						<label for="password" class="col-sm-2 col-form-label text-right">密码:</label>
 						<div class="col-sm-10">
-							<input type="password" class="form-control" id="password" placeholder="请输入您的密码!" required>
-							<div class="invalid-feedback">
+							<!--此处逻辑与 账号输入的处理相同-->
+							<input type="password"
+								   th:class="|form-control ${passwordMsg!=null?'is-invalid':''}|"
+								   th:value="${user!=null?user.password:''}"
+								   id="password" name="password" placeholder="请输入您的密码!" required>
+							<div class="invalid-feedback" th:text="${passwordMsg}">
 								密码长度不能小于8位!
 							</div>							
 						</div>
@@ -85,7 +100,10 @@
 					<div class="form-group row mt-4">
 						<label for="confirm-password" class="col-sm-2 col-form-label text-right">确认密码:</label>
 						<div class="col-sm-10">
-							<input type="password" class="form-control" id="confirm-password" placeholder="请再次输入密码!" required>
+							<!--此处逻辑 与 账号输入的处理相同-->
+							<input type="password" class="form-control"
+								   th:value="${user!=null?user.password:''}"
+								   id="confirm-password" placeholder="请再次输入密码!" required>
 							<div class="invalid-feedback">
 								两次输入的密码不一致!
 							</div>
@@ -94,8 +112,12 @@
 					<div class="form-group row">
 						<label for="email" class="col-sm-2 col-form-label text-right">邮箱:</label>
 						<div class="col-sm-10">
-							<input type="email" class="form-control" id="email" placeholder="请输入您的邮箱!" required>
-							<div class="invalid-feedback">
+							<!--此处逻辑 与 账号输入的处理相同-->
+							<input type="email"
+								   th:class="|form-control ${emailMsg!=null?'is-invalid':''}|"
+								   th:value="${user!=null?user.email:''}"
+								   id="email" name="email" placeholder="请输入您的邮箱!" required>
+							<div class="invalid-feedback" th:text="${emailMsg}">
 								该邮箱已注册!
 							</div>
 						</div>
@@ -103,6 +125,7 @@
 					<div class="form-group row mt-4">
 						<div class="col-sm-2"></div>
 						<div class="col-sm-10 text-center">
+							<!--表单提交按钮-->
 							<button type="submit" class="btn btn-info text-white form-control">立即注册</button>
 						</div>
 					</div>
@@ -176,7 +199,7 @@
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
-	<script src="../js/global.js"></script>
-	<script src="../js/register.js"></script>
+	<script th:src="@{/js/global.js}"></script>		<!--修改为绝对路径-->
+	<script th:src="@{/js/register.js}"></script>
 </body>
 </html>

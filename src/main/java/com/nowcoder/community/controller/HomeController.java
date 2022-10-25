@@ -25,7 +25,7 @@ import java.util.Map;
  * @Description: 控制器类:完成首页跳转功能
  */
 @Controller
-@RequestMapping("/community")   //访问路径前缀,如果加上则请求路径必须带/community
+//@RequestMapping("/community")   //访问路径前缀,如果加上则请求路径必须带/community
 public class HomeController {
     @Autowired  //注入组件
     private DiscussPostService discussPostService;

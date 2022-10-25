@@ -1,17 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
-	<link rel="stylesheet" href="../css/global.css" />
+	<link rel="stylesheet" th:href="@{/css/global.css}" />
 	<title>牛客网-操作结果</title>
 </head>
 <body class="bg-white">
 	<div class="nk-container">
 		<!-- 头部 -->
-		<header class="bg-dark sticky-top">
+		<header class="bg-dark sticky-top" th:replace="index::header">
+			<!--使用th:replace属性,将此标签<header>的内容替换为index.html页面下的th:fragment=header标签的内容-->
 			<div class="container">
 				<!-- 导航 -->
 				<nav class="navbar navbar-expand-lg navbar-dark">
@@ -62,11 +63,13 @@
 		<div class="main">
 			<div class="container mt-5">
 				<div class="jumbotron">
-					<p class="lead">您的账号已经激活成功,可以正常使用了!</p>
+					<!--控制层LoginController的注册功能register返回的提示信息,此处进行获取(表示注册成功),获取到则会替换给定文本-->
+					<p class="lead" th:text="${msg}">您的账号已经激活成功,可以正常使用了!</p>
 					<hr class="my-4">
 					<p>
 						系统会在 <span id="seconds" class="text-danger">8</span> 秒后自动跳转,
-						您也可以点此 <a id="target" href="login.html" class="text-primary">链接</a>, 手动跳转!
+						您也可以点此 <a id="target" th:href="@{${target}}" class="text-primary">链接</a>, 手动跳转!
+						<!--此处使用${target}获得请求域中id="target"的内容,为一个请求地址,再使用@{}表示此为请求地址-->
 					</p>
 				</div>
 			</div>

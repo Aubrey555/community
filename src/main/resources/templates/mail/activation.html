@@ -1,19 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
-    <title>牛客网-激活账号</title>
+    <title>激活账号</title>
 </head>
 <body>
 	<div>
 		<p>
-			<b>xxx@xxx.com</b>, 您好!
+			<!--该页面为激活邮箱的动态页面,用于向用户发送,因此在发送邮件的方法中进行设置此变量值1-->
+			<b th:text="${email}">xxx@xxx.com</b>, 您好!
 		</p>
 		<p>
-			您正在注册牛客网, 这是一封激活邮件, 请点击 
-			<a href="#">http://www.nowcoder.com/activation/abcdefg123456.html</a>,
-			激活您的牛客账号!
+			<!--变量值2: 即需要该用户点击的url链接,点击后完成账号激活功能,此链接在账号激活功能UserService中进行设置,传到此页面-->
+			您正在注册社区讨论网站, 这是一封激活邮件, 请点击
+			<a th:href="${url}">此链接</a>,
+			激活您的网站账号!
 		</p>
 	</div>
 </body>
