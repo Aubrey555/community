@@ -1,6 +1,8 @@
 package com.nowcoder.community.service;
 
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
@@ -22,6 +24,8 @@ import java.util.Random;
 public class UserService implements CommunityConstant { //实现该接口,具有常量值,表示激活状态
     @Resource
     private UserMapper userMapper;
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;//注入LoginTicket类的数据访问层的mapper接口
 
     @Autowired
     private MailClient mailClient;//邮箱客户端:提供发邮件功能(将发邮件的功能委托给新浪完成,即类似于客户端)
@@ -128,5 +132,73 @@ public class UserService implements CommunityConstant { //实现该接口,具有
     public User findUserById(int id) {
         return userMapper.selectById(id);
     }
+
+    /**
+     * 根据用户账号密码以及过期时间进行登录
+     * @param username  用户账号
+     * @param password  登陆密码(此处用户存入的为明文密码,数据库中为MD5密码)
+     * @param expiredSeconds    希望的凭证过期时间(记住账号的时间),秒
+     * @return      map可以封装多种不同的返回结果
+     */
+    public Map<String, Object> login(String username, String password, int expiredSeconds) {
+        Map<String, Object> map = new HashMap<>();
+
+        // 1.空值处理
+        if (StringUtils.isBlank(username)) {
+            map.put("usernameMsg", "账号不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(password)) {
+            map.put("passwordMsg", "密码不能为空!");
+            return map;
+        }
+
+        // 2.验证账号
+        User user = userMapper.selectByName(username);//根据username查询用户
+        if (user == null) {
+            map.put("usernameMsg", "该账号不存在!");
+            return map;
+        }
+
+        // 验证状态
+        if (user.getStatus() == 0) {
+            map.put("usernameMsg", "该账号未激活!");//账号注册后需要进行激活
+            return map;
+        }
+
+        // 验证密码(对用户的密码进行MD5加密后进行比较)
+        password = CommunityUtil.md5(password + user.getSalt());//salt为每个用户的随机字符串
+        if (!user.getPassword().equals(password)) {
+            map.put("passwordMsg", "密码不正确!");
+            return map;
+        }
+        //3. 此时表示用户账号密码均正确,此时既需要生成登录凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());//用户的凭证字符为随机字符串
+        loginTicket.setStatus(0);//用户状态(0--正常有效,1--过期无效)
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));//设置用户凭证的过期时间
+        loginTicketMapper.insertLoginTicket(loginTicket);
+        //返回用户凭证的字符
+        map.put("ticket", loginTicket.getTicket());//将用户凭证的ticket存入map进行返回
+        return map;
+    }
+
+    /**
+     * 实现退出功能:通过用户凭证设置凭证表的用户状态为1,表示用户退出
+     * @param ticket
+     */
+    public void logout(String ticket) {
+        loginTicketMapper.updateStatus(ticket, 1);
+    }
+
+    public LoginTicket findLoginTicket(String ticket) {
+        return loginTicketMapper.selectByTicket(ticket);
+    }
+
+    public int updateHeader(int userId, String headerUrl) {
+        return userMapper.updateHeader(userId, headerUrl);
+    }
+
 
 }

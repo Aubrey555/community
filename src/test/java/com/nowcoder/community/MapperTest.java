@@ -1,13 +1,16 @@
 package com.nowcoder.community;
 
 import com.nowcoder.community.dao.DiscussPostMapper;
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.DiscussPost;
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,6 +27,9 @@ public class MapperTest {
     @Autowired
     DiscussPostMapper discussPostMapper;//自动注入该类的接口
     //测试通过id/name/email查询user
+
+    @Autowired
+    LoginTicketMapper loginTicketMapper;//测试LoginTicketMapper接口
     @Test
     public void getUser(){
         User user = userMapper.selectById(1);//通过id查询user
@@ -65,4 +71,21 @@ public class MapperTest {
         System.out.println(rows);
     }
 
+    //测试loginTicketMapper接口的插入条件
+    @Test
+    public void testLoginTicket(){
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(10);
+        loginTicket.setTicket("qwertyuiop");
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000*60*10));//当前时间+10分钟
+        int i = loginTicketMapper.insertLoginTicket(loginTicket);//测试插入条件
+    }
+    //测试查询和更新条件
+    @Test
+    public void testLoginTicket1(){
+        LoginTicket ticket = loginTicketMapper.selectByTicket("qwertyuiop");
+        System.out.println(ticket);
+        int i = loginTicketMapper.updateStatus("qwertyuiop", 1);//更新用户凭证为1
+    }
 }

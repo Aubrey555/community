@@ -63,10 +63,16 @@
 		<div class="main">
 			<div class="container pl-5 pr-5 pt-3 pb-3 mt-3 mb-3">
 				<h3 class="text-center text-info border-bottom pb-3">登&nbsp;&nbsp;录</h3>
-				<form class="mt-5" method="post" th:action="@{/login}">
+				<form class="mt-5" method="post" th:action="@{/login}">	<!--设置表单提交的路径-->
 					<div class="form-group row">
 						<label for="username" class="col-sm-2 col-form-label text-right">账号:</label>
 						<div class="col-sm-10">
+							<!--1.此输入框设置用户名,需要设置name="username",与请求方法的参数名一致,则可以完成自动注入
+								2.通过th:value可以显示该表单页面原先旧的值(上一次的账号密码),对于实体类对象的值可以在model中进行获取(自动装到model中)
+										对于此处的账号/密码等普通类型数据,存储在请求域request中(此时请求尚未结束),通过param可以得到(相当于request.getParameter(xxx))
+								3.th:text用于动态显示提示,该提示是否显示取决于输入框<input>样
+										只有usernameMsg!=null,表示用户信息输入有错,则带上is-invalid属性,即对非法信息进行提示,否则为空,表示输入正确不带
+									-->
 							<input type="text" th:class="|form-control ${usernameMsg!=null?'is-invalid':''}|"
 								   th:value="${param.username}"
 								   id="username" name="username" placeholder="请输入您的账号!" required>
@@ -78,6 +84,7 @@
 					<div class="form-group row mt-4">
 						<label for="password" class="col-sm-2 col-form-label text-right">密码:</label>
 						<div class="col-sm-10">
+							<!--与账号设置思路一致-->
 							<input type="password" th:class="|form-control ${passwordMsg!=null?'is-invalid':''}|"
 								   th:value="${param.password}"
 								   id="password" name="password" placeholder="请输入您的密码!" required>
@@ -89,6 +96,7 @@
 					<div class="form-group row mt-4">
 						<label for="verifycode" class="col-sm-2 col-form-label text-right">验证码:</label>
 						<div class="col-sm-6">
+							<!--与账号设置思路一致,此处验证码不给默认值-->
 							<input type="text" th:class="|form-control ${codeMsg!=null?'is-invalid':''}|"
 								   id="verifycode" name="code" placeholder="请输入验证码!">
 							<div class="invalid-feedback" th:text="${codeMsg}">
@@ -96,13 +104,18 @@
 							</div>
 						</div>
 						<div class="col-sm-4">
-							<img th:src="@{/img/captcha.png}" id="kaptcha" style="width:100px;height:40px;" class="mr-2"/>
+							<!--th:src指定生成验证码图片的控制器方法映射的请求路径
+									href超链接作用域文本 刷新验证码,每次点击刷新验证码即可实现验证码更新,而不用每次都刷新页面重新访问服务器,使用js实现
+										即每次点击刷新验证码文本,都会调用一个js方法:refresh_kaptcha()-->
+							<img th:src="@{/kaptcha}" id="kaptcha" style="width:100px;height:40px;" class="mr-2"/>
 							<a href="javascript:refresh_kaptcha();" class="font-size-12 align-bottom">刷新验证码</a>
 						</div>
 					</div>				
 					<div class="form-group row mt-4">
 						<div class="col-sm-2"></div>
 						<div class="col-sm-10">
+							<!--与账号设置思路一致
+									1.th:checked表示动态判断,true即为勾选,false不勾选-->
 							<input type="checkbox" id="remember-me" name="rememberme"
 								   th:checked="${param.rememberme}">
 							<label class="form-check-label" for="remember-me">记住我</label>
@@ -186,9 +199,12 @@
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
 	<script th:src="@{/js/global.js}"></script>
 	<script>
+		/*基于jquery实现,该方法用于实现刷新验证码功能*/
 		function refresh_kaptcha() {
+			/*在global.js中声明全局变量CONTEXT_PATH = /community,表示当前项目,即访问路径;
+			* 	每次传入一个随即参数,让浏览器误以为此路径发生变化,用于访问服务器 */
 			var path = CONTEXT_PATH + "/kaptcha?p=" + Math.random();
-			$("#kaptcha").attr("src", path);
+			$("#kaptcha").attr("src", path);/*#kaptcha为调用此函数的div标签对应的id,将此id的“src”属性改为path,即通过点击刷新验证码,即可重新访问服务器*/
 		}
 	</script>
 </body>
