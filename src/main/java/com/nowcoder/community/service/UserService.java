@@ -24,7 +24,7 @@ import java.util.Random;
 public class UserService implements CommunityConstant { //实现该接口,具有常量值,表示激活状态
     @Resource
     private UserMapper userMapper;
-    @Autowired
+    @Resource
     private LoginTicketMapper loginTicketMapper;//注入LoginTicket类的数据访问层的mapper接口
 
     @Autowired
@@ -181,6 +181,49 @@ public class UserService implements CommunityConstant { //实现该接口,具有
         loginTicketMapper.insertLoginTicket(loginTicket);
         //返回用户凭证的字符
         map.put("ticket", loginTicket.getTicket());//将用户凭证的ticket存入map进行返回
+        return map;
+    }
+
+
+    /**
+     * 根据用户的id修改密码(控制层中处理表单提交的新密码和确认密码一致的情况)
+     *      1.原始密码和新密码空值处理
+     *      2.确认原始密码是否正确
+     *      3.确认新密码长度是否合规
+     *      4.修改新密码
+     * @param userId    用户id
+     * @param oldPsd   用户原始密码
+     * @param newPsd   用户新密码
+     * @return
+     */
+    public Map<String,Object> updatePwd(int userId,String oldPsd,String newPsd){
+        Map<String, Object> map = new HashMap<>();
+        //1.空值处理
+        if(StringUtils.isBlank(oldPsd)){
+            map.put("oldPsdMsg", "原始密码不能为空!");
+            return map;
+        }
+        if(StringUtils.isBlank(newPsd)){
+            map.put("NewPsdMsg", "新密码不能为空!");
+            return map;
+        }
+        //2.校验原始密码
+        User user = userMapper.selectById(userId);
+        System.out.println(user);
+        String password = CommunityUtil.md5(oldPsd + user.getSalt());//salt为每个用户的随机字符串,得到用户输入的密码
+        if(!user.getPassword().equals(password)){
+            map.put("oldPsdMsg", "原始密码输入错误!");
+            return map;
+        }
+
+        //3.长度判断
+        if(StringUtils.length(newPsd) < 8){
+            map.put("NewPsdMsg", "新密码长度至少为8位,请重新进行设置!");
+            return map;
+        }
+        //4.更新密码(更新密码为MD5加密的密码)
+        password = CommunityUtil.md5(newPsd + user.getSalt());
+        userMapper.updatePassword(userId, password);//用户更新后的密码
         return map;
     }
 

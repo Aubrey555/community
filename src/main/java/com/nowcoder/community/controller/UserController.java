@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/user")    //该控制器类的访问路径
@@ -123,4 +125,37 @@ public class UserController {
             log.error("读取头像失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 修改用户密码(新密码和确认新密码输入由前端js页面进行自动判断,此处可以不进行处理)
+     * @param oldPsd    原始密码
+     * @param newPsd    新密码
+     * @param newPsd1   确认密码
+     * @param model     向客户端返回数据
+     * @return
+     */
+    @PostMapping("/uploadPsd")
+    public String uploadPassword(String oldPsd,String newPsd,String newPsd1,Model model){
+        User user = hostHolder.getUser();//获取当前线程的用户
+        if(!newPsd.equals(newPsd1)){//新密码和确认密码 不一致时,
+            model.addAttribute("NewPsdMsg1","请保证两次密码输入一致!");
+            return "/site/setting";//表示修改密码失败,重新返回到修改密码界面
+        }
+
+        //1.调用Service层的修改密码
+        Map<String, Object> map = userService.updatePwd(user.getId(), oldPsd, newPsd);
+        //2.通过map判断是否修改成功(如果修改成功,则跳转到一个中间页面operate-result.html,该页面中会进行自动跳转功能,跳转到首页)
+        if(map.isEmpty()){
+            model.addAttribute("msg","密码修改成功,请重新登录");
+            model.addAttribute("target","/login");//target属性存储激活成功跳转到的页面中的某个链接地址(登陆页面)
+            return "/site/operate-result";//表示密码修改成功后,需要跳转的操作结果页面(该页面内会进行自动跳转到/login,即为target携带内容)
+        }else{
+            //修改失败:即为原始密码  新密码其中一个设置失败,此处不进行判断,都传入请求域中
+            model.addAttribute("oldPsdMsg",map.get("oldPsdMsg"));
+            model.addAttribute("NewPsdMsg",map.get("NewPsdMsg"));
+            model.addAttribute("NewPsdMsg1",map.get("NewPsdMsg1"));
+            return "/site/setting";//表示修改密码失败,重新返回到修改密码界面
+        }
+    }
+
 }
