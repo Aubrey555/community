@@ -5,14 +5,14 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
-	<link rel="stylesheet" th:href="@{/css/global.css}" />
+	<link rel="stylesheet" th:href="@{/css/global.css}" />	<!--修改静态资源的路径-->
 	<link rel="stylesheet" th:href="@{/css/login.css}" />
 	<title>牛客网-账号设置</title>
 </head>
 <body>
 	<div class="nk-container">
 		<!-- 头部 -->
-		<header class="bg-dark sticky-top" th:replace="index::header">
+		<header class="bg-dark sticky-top" th:replace="index::header">	<!--复用index.html页面的th:fragment="header"标签内容到此处-->
 			<div class="container">
 				<!-- 导航 -->
 				<nav class="navbar navbar-expand-lg navbar-dark">
@@ -62,18 +62,22 @@
 		<!-- 内容 -->
 		<div class="main">
 			<div class="container p-5 mt-3 mb-3">
-				<!-- 上传头像 -->
+				<!-- 上传头像(表单提交,在表单中设置提交路径) -->
 				<h6 class="text-left text-info border-bottom pb-2">上传头像</h6>
+					<!--enctype属性,必须设置为文件上传,th:action设置上传路径-->
 				<form class="mt-5" method="post" enctype="multipart/form-data" th:action="@{/user/upload}">
 					<div class="form-group row mt-4">
 						<label for="head-image" class="col-sm-2 col-form-label text-right">选择头像:</label>
 						<div class="col-sm-10">
 							<div class="custom-file">
+								<!--name="headerImage"一致时,前端页面上传的文件数据会自动注入到控制器形参的MultipartFile类型中）-->
 								<input type="file" th:class="|custom-file-input ${error!=null?'is-invalid':''}|"
 									   id="head-image" name="headerImage" lang="es" required="">
 								<label class="custom-file-label" for="head-image" data-browse="文件">选择一张图片</label>
+								<!--此处文本框class="invalid-feedback" 显示文件上传错误时提示的消息,默认不显示,与输入框th:class进行绑定
+										只有上面file文件框 th:class中的错误提示error!=null时,此处标签有效,动态显示error属性的内容;否则为空则不显示-->
 								<div class="invalid-feedback" th:text="${error}">
-									该账号不存在!
+									文件上传错误的提示消息(此处内容会被变量{error}覆盖)
 								</div>
 							</div>
 						</div>
@@ -85,7 +89,7 @@
 						</div>
 					</div>
 				</form>
-				<!-- 修改密码 -->
+				<!-- 修改密码(表单提交,在表单中设置提交路径) -->
 				<h6 class="text-left text-info border-bottom pb-2 mt-5">修改密码</h6>
 				<form class="mt-5">				
 					<div class="form-group row mt-4">

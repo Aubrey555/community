@@ -192,10 +192,12 @@ public class UserService implements CommunityConstant { //实现该接口,具有
         loginTicketMapper.updateStatus(ticket, 1);
     }
 
+    //根据ticket凭证获得对应实体类LoginTicket
     public LoginTicket findLoginTicket(String ticket) {
         return loginTicketMapper.selectByTicket(ticket);
     }
 
+    //通过用户的userId更新用户的头像路径headerUrl
     public int updateHeader(int userId, String headerUrl) {
         return userMapper.updateHeader(userId, headerUrl);
     }
