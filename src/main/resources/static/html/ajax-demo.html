@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AJAX</title>
+</head>
+<body>
+    <p>
+        <!--1.表示一个"发送"文字的按钮, 点击该按钮即触发单击事件send()-->
+        <input type="button" value="发送" onclick="send();">
+    </p>
+
+    <!--2.引入jquery-->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <!--3.配置jquery发送ajax异步请求(局部刷新页面)
+            使用$.post发送post请求;使用$.get发送get请求;使用$.ajax可以配置发送任意请求-->
+    <script>
+        function send() {
+            $.post(
+                "/community/test/ajax",//1.访问服务器的路径
+                {"name":"张三","age":23},//2.向服务器提交的数据
+                function(data) {        //3.声明回调函数:即服务器向浏览器响应数据data,通过此函数将数据data响应到页面上
+                    console.log(typeof(data));//此时data类型为为字符串数据(/community/test/ajax请求路径响应String)
+                    console.log(data);//打印data内容
+
+                    data = $.parseJSON(data);//将data数据(json格式的字符串)转换为js对象
+                    console.log(typeof(data));//此时data类型为JS对象
+                    console.log(data.code);//访问data的code信息(Community中封装的属性名即为code msg)
+                    console.log(data.msg);//访问data的msg信息
+                }
+            );
+        }
+    </script>
+</body>
+</html>

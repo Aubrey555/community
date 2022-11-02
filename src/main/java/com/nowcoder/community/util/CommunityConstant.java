@@ -30,4 +30,13 @@ public interface CommunityConstant {
      */
     int REMEMBER_EXPIRED_SECONDS = 3600 * 24 * 100;//记住密码100天
 
+    /**
+     * 实体类型: 表示帖子
+     */
+    int ENTITY_TYPE_POST = 1;
+
+    /**
+     * 实体类型: 表示评论
+     */
+    int ENTITY_TYPE_COMMENT = 2;
 }

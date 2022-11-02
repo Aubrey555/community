@@ -26,4 +26,11 @@ public interface DiscussPostMapper {
      * @return
      */
     List<DiscussPost> selectDiscussPosts(int userId,int offset,int limit);
+    //插入一个帖子
+    int insertDiscussPost(DiscussPost discussPost);
+    //通过id得到帖子的详细信息
+    DiscussPost selectDiscussPostById(int id);
+    //更新当前帖子的评论数量
+    int updateCommentCount(int id,int commentCount);
+
 }

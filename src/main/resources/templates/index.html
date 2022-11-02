@@ -76,8 +76,10 @@
 							<a class="nav-link" href="#">最热</a>
 						</li>
 					</ul>
-					<button type="button" class="btn btn-primary btn-sm position-absolute rt-0" data-toggle="modal" data-target="#publishModal">我要发布</button>
+					<!--我要 发布按钮:只有当前用户登陆才进行显示,即使用th:if="${loginUser != null}-->
+					<button type="button" class="btn btn-primary btn-sm position-absolute rt-0" data-toggle="modal" data-target="#publishModal" th:if="${loginUser != null}">我要发布</button>
 				</div>
+				<!--点击上方我要 发布(发布帖子)按钮后,即跳转到此弹出框id="publishModal"-->
 				<!-- 弹出框 -->
 				<div class="modal fade" id="publishModal" tabindex="-1" role="dialog" aria-labelledby="publishModalLabel" aria-hidden="true">
 					<div class="modal-dialog modal-lg" role="document">
@@ -90,6 +92,7 @@
 							</div>
 							<div class="modal-body">
 								<form>
+									<!--在发布按钮对应的ajax请求事件中通过id获取标题和正文的内容,ajax请求访问服务器路径时携带-->
 									<div class="form-group">
 										<label for="recipient-name" class="col-form-label">标题：</label>
 										<input type="text" class="form-control" id="recipient-name">
@@ -102,11 +105,14 @@
 							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+								<!--发布按钮绑定的ajax请求为id="publishBtn",此请求包含在页面底部加载的<script th:src="@{js/index.js}"></script> js文件中
+										在index.js中对ajax请求进行完善-->
 								<button type="button" class="btn btn-primary" id="publishBtn">发布</button>
 							</div>
 						</div>
 					</div>
 				</div>
+				<!--发布成功后需要显示的提示框,用于显示是否发布成功等信息,该提示框显示也在index.js文件中的函数内,在发布按钮点击后,弹出框关闭,加载提示框-->
 				<!-- 提示框 -->
 				<div class="modal fade" id="hintModal" tabindex="-1" role="dialog" aria-labelledby="hintModalLabel" aria-hidden="true">
 					<div class="modal-dialog modal-lg" role="document">
@@ -132,8 +138,9 @@
 						<div class="media-body">
 							<h6 class="mt-0 mb-3">
 								<!--动态显示帖子标题:${map.post.title},超链接表示转到帖子内容,此处暂未设置,#可切换到页面底部
-										th:utext可以将文本中的转义字符进行转义(即<显示为<),而th:text中的转义字符不会显示(<显示为&lt;)-->
-								<a href="#" th:utext="${map.post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</a>
+										th:utext可以将文本中的转义字符进行转义(即<显示为<),而th:text中的转义字符不会显示(<显示为&lt;)
+										帖子标题链接:连接到控制器方法,点击即显示帖子详情页detail.html,并且需要动态传入当前帖子的id,即为map.post.id(链接和路径中加入||)-->
+								<a th:href="@{|/discuss/detail/${map.post.id}|}" th:utext="${map.post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</a>
 								<!--只有当前帖子的类型为置顶/精华,才显示置顶/精华 文字
 										即使用th:if标签,只有标签内逻辑成立,才显示该文本-->
 								<span class="badge badge-secondary bg-primary" th:if="${map.post.type==1}">置顶</span>
@@ -147,15 +154,16 @@
 									<!--此处点赞和回帖功能,暂不进行处理-->
 									<li class="d-inline ml-2">赞 11</li>
 									<li class="d-inline ml-2">|</li>
-									<li class="d-inline ml-2">回帖 7</li>
+									<!--获取当前帖子map.post的评论总数commentCount-->
+									<li class="d-inline ml-2">回帖 <span th:text="${map.post.commentCount}">7</li>
 								</ul>
 							</div>
 						</div>						
 					</li>
 				</ul>
-				<!-- 分页逻辑处理 -->
+				<!-- 首页的分页逻辑处理(可以直接在其他页面进行复用,通过th:fragment="pagination"标签) -->
 					<!--只有查询到存在数据时才进行显示-->
-				<nav class="mt-5" th:if="${page.rows>0}">
+				<nav class="mt-5" th:if="${page.rows>0}" th:fragment="pagination">
 					<ul class="pagination justify-content-center">
 						<li class="page-item">
 							<!--此处设置首页文本的超链接:即跳转到current=1页面,Thymeleaf语法中,会自动将()转换为? ,转化为&,此处limit不设置则默认为10

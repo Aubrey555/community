@@ -7,6 +7,18 @@
     <sql id="selectFields">
         id, user_id, title, content, type, status, create_time, comment_count, score
     </sql>
+    <sql id="insertFields">
+        user_id, title, content, type, status, create_time, comment_count, score
+    </sql>
+    <!--插入一个帖子 int insertDiscussPost(DiscussPost discussPost); 传入参数类型为DiscussPost-->
+    <insert id="insertDiscussPost" parameterType="DiscussPost">
+        insert into discuss_post(<include refid="insertFields"></include>)
+        values(#{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score})
+    </insert>
+    <!-- 更新当前帖子的评论数量  int updateCommentCount(int id,int commentCount);（参数值为普通的数据类型,返回值也为整数 不用声明）-->
+    <update id="updateCommentCount">
+        update discuss_post set comment_count = #{commentCount} where id = #{id}
+    </update>
     <!--分页显示: 通过用户id返回该用户的帖子并分页显示(个人主页的帖子)
                 List<DiscussPost> selectDiscussPosts(int userId,int offset,int limit);
                 使用resultType属性声明返回的类型,对于List集合,java可以自动检测,无需声明(map需要)-->
@@ -31,6 +43,12 @@
         <if test="userId!=0">
             and user_id = #{userId}
         </if>
+    </select>
+    <!--通过id得到帖子的详细信息 DiscussPost selectDiscussPostById(int id);  返回的数据类型为resultType="DiscussPost"  -->
+    <select id="selectDiscussPostById" resultType="DiscussPost">
+        select <include refid="selectFields"></include>
+        from discuss_post
+        where id = #{id}
     </select>
 
 </mapper>

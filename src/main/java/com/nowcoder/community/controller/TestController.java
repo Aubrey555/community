@@ -83,5 +83,19 @@ public class TestController {
         return "get session";
     }
 
+    /**
+     * 测试ajax异步请求处理json格式的字符串
+     *      服务器想客户端响应JSON格式的字符串(调用CommunityUtil工具类的getJSONString()方法)
+     * @param name
+     * @param age
+     * @return
+     */
+    @PostMapping("/ajax")
+    @ResponseBody
+    public String testAjax(String name,int age){
+        System.out.println(name);
+        System.out.println(age);
+        return CommunityUtil.getJSONString(0,"该编码表示操作成功!");
+    }
 
 }

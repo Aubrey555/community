@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nowcoder.community.dao.CommentMapper">
+
+    <!--Comment的所有字段-->
+    <sql id="selectFields">
+        id, user_id, entity_type, entity_id, target_id, content, status, create_time
+    </sql>
+    <!--除了主键之外的字段,插入评论时使用-->
+    <sql id="insertFields">
+        user_id, entity_type, entity_id, target_id, content, status, create_time
+    </sql>
+    <!--根据实体entityType查询所有的评论(即查询帖子的评论,还是评论的评论,还是视频课程的评论等) List<Comment> selectCommentsByEntity()-->
+    <select id="selectCommentsByEntity" resultType="Comment">
+        select <include refid="selectFields"></include>
+        from comment
+        where status = 0    -- 表示数据有效
+        and entity_type = #{entityType}
+        and entity_id = #{entityId}
+        order by create_time asc    -- 按照时间进行排序(先评价的显示)
+        limit #{offset}, #{limit}   -- 分页条件
+    </select>
+
+    <select id="selectCountByEntity" resultType="int">
+        select count(id)    -- 总评论条数
+        from comment
+        where status = 0
+        and entity_type = #{entityType} -- 该实体类型评论的条数
+        and entity_id = #{entityId}
+    </select>
+
+    <!--插入一条评论  int insertComment(Comment comment);-->
+    <insert id="insertComment" parameterType="Comment" useGeneratedKeys="true" keyProperty="id">
+        insert into comment(<include refid="insertFields"></include>)
+        values(#{userId},#{entityType},#{entityId},#{targetId},#{content},#{status},#{createTime})
+    </insert>
+
+</mapper>
