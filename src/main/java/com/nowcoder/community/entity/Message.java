@@ -1,83 +1,22 @@
 package com.nowcoder.community.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 import java.util.Date;
 
-public class Message {
-
-    private int id;
-    private int fromId;
-    private int toId;
-    private String conversationId;
-    private String content;
-    private int status;
+@Data
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+public class Message {  //该实体类表示用户的私信列表
+    private int id; //唯一主键
+    private int fromId;//消息的发送方(例如用户id: 111 112 113 114...),如果fromId=1,则表示为发送消息方为系统用户
+    private int toId;//消息的接受方(例如用户id: 111 112 113 114...)
+    private String conversationId;//表示会话的一个字段(111_112之间的一个会话,112_113之间的一个会话,将小的用户id放在前面,表示两用户之间的一个会话。冗余数据,可以通过fromId等得到,但查询方便)
+    private String content;//消息内容
+    private int status;//0表示私信未读,1表示已读,2表示删除该私信
     private Date createTime;
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getFromId() {
-        return fromId;
-    }
-
-    public void setFromId(int fromId) {
-        this.fromId = fromId;
-    }
-
-    public int getToId() {
-        return toId;
-    }
-
-    public void setToId(int toId) {
-        this.toId = toId;
-    }
-
-    public String getConversationId() {
-        return conversationId;
-    }
-
-    public void setConversationId(String conversationId) {
-        this.conversationId = conversationId;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    @Override
-    public String toString() {
-        return "Message{" +
-                "id=" + id +
-                ", fromId=" + fromId +
-                ", toId=" + toId +
-                ", conversationId='" + conversationId + '\'' +
-                ", content='" + content + '\'' +
-                ", status=" + status +
-                ", createTime=" + createTime +
-                '}';
-    }
 }

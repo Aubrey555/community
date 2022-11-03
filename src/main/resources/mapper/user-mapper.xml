@@ -30,7 +30,6 @@
         from user
         where email = #{email}
     </select>
-
     <!--int insertUser(User user);加入用户
             使用parameterType属性:声明参数类型
             使用keyProperty指定表中主键对应的实体类的属性,从数据库中获取从而自动赋值-->

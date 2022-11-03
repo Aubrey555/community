@@ -65,4 +65,13 @@ public class HomeController {
         return "index";
     }
 
+    /**
+     * 出现异常后跳转到/500.html界面
+     * @return
+     */
+    @RequestMapping(path = "/error", method = RequestMethod.GET)
+    public String getErrorPage() {
+        return "/error/500";
+    }
+
 }

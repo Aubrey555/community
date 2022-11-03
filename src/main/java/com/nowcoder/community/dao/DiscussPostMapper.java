@@ -13,7 +13,7 @@ import java.util.List;
  * @Date:2022/10/19 17:19
  * @Description:
  */
-@Mapper
+//@Mapper
 public interface DiscussPostMapper {
     //通过用户id查询该用户的帖子总数(@Param注解中的属性表示为当前参数的userId的别名)
     //如果该方法只有一个参数,并且在动态sql<if>中使用,则必须使用该注解加上别名(userId为0表示直接从表中搜索)

@@ -28,7 +28,7 @@
 							</li>
 							<!--对于"消息"登陆内容,进行选择性显示(只有登录用户才进行显示,也就是在拦截器中配置的loginUser不为空时)-->
 							<li class="nav-item ml-3 btn-group-vertical" th:if="${loginUser!=null}">
-								<a class="nav-link position-relative" href="site/letter.html">消息<span class="badge badge-danger">12</span></a>
+								<a class="nav-link position-relative" th:href="@{/letter/list}">消息<span class="badge badge-danger">12</span></a>
 							</li>
 							<!--只有用户未登录,才显示"注册"超链接文本(即在拦截器中配置的loginUser为空)-->
 							<li class="nav-item ml-3 btn-group-vertical" th:if="${loginUser==null}">

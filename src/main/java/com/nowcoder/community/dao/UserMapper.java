@@ -28,5 +28,4 @@ public interface UserMapper {
 
     int updatePassword(int id, String password);//根据用户id更新密码
 
-
 }

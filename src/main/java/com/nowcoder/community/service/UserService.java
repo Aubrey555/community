@@ -245,5 +245,8 @@ public class UserService implements CommunityConstant { //实现该接口,具有
         return userMapper.updateHeader(userId, headerUrl);
     }
 
-
+    //通过用户名查找用户
+    public User findUserByName(String toName) {
+        return userMapper.selectByName(toName);
+    }
 }
