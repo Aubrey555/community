@@ -6,6 +6,7 @@ import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
+import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
@@ -35,6 +36,8 @@ public class DiscussPostController implements CommunityConstant {
 
     @Autowired
     private CommentService commentService;
+    @Autowired  //通过该组件注入当前帖子详情界面,每个评论/评论的回复  的赞的数量
+    private LikeService likeService;
 
     /**
      * 实现发布帖子的功能
@@ -78,6 +81,15 @@ public class DiscussPostController implements CommunityConstant {
         // 2.帖子作者显示(即通过帖子id显示帖子作者)
         User user = userService.findUserById(post.getUserId());
         model.addAttribute("user", user);
+            //2.1 得到当前帖子的点赞总数(传入当前点赞对应的实体类,即帖子;以及该帖子对应的id)
+        long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, discussPostId);
+            //2.2 将当前帖子的点赞总数加入请求域中
+        model.addAttribute("likeCount",likeCount);
+            //2.2 得到当前用户是否对当前帖子进行了点赞(传入当前用户,以及当前用户访问的帖子id,)
+                //如果用户未登录,直接返回0,表示未登录(在discuss.js异步请求中进行处理)
+        int likeStatus = hostHolder.getUser() == null ? 0 :
+                likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_POST, discussPostId);
+        model.addAttribute("likeStatus",likeStatus);
 
         // 3.评论的分页信息
         page.setLimit(5);//表示每页显示5条数据
@@ -101,6 +113,15 @@ public class DiscussPostController implements CommunityConstant {
                 //   封装评论作者
                 commentVo.put("user", userService.findUserById(comment.getUserId()));
 
+                //点赞数量:得到当前评论的点赞总数(传入当前点赞对应的实体类及其id)
+                likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeCount",likeCount);//将评论的点赞总数放入commentVo集合中
+                //点赞状态:得到当前用户是否对当前评论进行了点赞(传入当前用户,以及当前用户点赞的评论id)
+                //如果用户未登录,直接返回0,表示未登录(在discuss.js异步请求中进行处理)
+                likeStatus = hostHolder.getUser() == null ? 0 :
+                        likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeStatus",likeStatus);//将用户对当前评论的点赞状态放入commentVo集合中
+
                 //5.2 得到当前评论(ENTITY_TYPE_COMMENT)的所有回复,封装到replyList回复列表中
                 List<Comment> replyList = commentService.findCommentsByEntity(
                         ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);//从第0行开始查,并显示所有回复
@@ -119,6 +140,16 @@ public class DiscussPostController implements CommunityConstant {
                         //(因此得到此回复的对象,如果是0表示回复评论,则使得target为空,否则不为0表示回复一个评论的回复,得到该评论回复的对象)
                         User target = reply.getTargetId() == 0 ? null : userService.findUserById(reply.getTargetId());
                         replyVo.put("target", target);
+
+                        //点赞数量:得到当前回复的点赞总数(传入当前点赞对应的实体类及其id)
+                        likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeCount",likeCount);//将评论的点赞总数放入commentVo集合中
+                        //点赞状态:得到当前用户是否对当前评论进行了点赞(传入当前用户,以及当前用户点赞的评论id)
+                        //如果用户未登录,直接返回0,表示未登录(在discuss.js异步请求中进行处理)
+                        likeStatus = hostHolder.getUser() == null ? 0 :
+                                likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeStatus",likeStatus);//将用户对当前评论的点赞状态放入commentVo集合中
+
                         //replyVoList中加入当前评论的所有回复
                         replyVoList.add(replyVo);
                     }

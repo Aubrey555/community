@@ -2,13 +2,14 @@ package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.service.FollowService;
+import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -29,7 +30,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/user")    //该控制器类的访问路径
 @Slf4j
-public class UserController {
+public class UserController implements CommunityConstant {
 
     @Value("${community.path.upload}")
     private String uploadPath;  //获取配置文件中设置服务器对于用户上传文件的存放地址
@@ -46,6 +47,11 @@ public class UserController {
     @Autowired  //注入HostHolder组件,该组件持有当前请求(线程)对应的用户
     private HostHolder hostHolder;
 
+    @Autowired  //得到当前用户的总点赞数等信息
+    private LikeService likeService;
+
+    @Autowired  //实现访问个人主页的功能
+    private FollowService followService;
     /**
      * 访问账号设置界面
      * @return
@@ -62,7 +68,7 @@ public class UserController {
      * @param model         向页面返回数据
      * @return
      */
-    @LoginRequired
+    @LoginRequired      //自定义注解LoginRequired,表示当前方法时候登录才能访问(标注此注解后,只有登录才能访问被标注的控制器方法)
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
     public String uploadHeader(MultipartFile headerImage, Model model) {
         if (headerImage == null) {  //如果传入文件为空
@@ -156,6 +162,43 @@ public class UserController {
             model.addAttribute("NewPsdMsg1",map.get("NewPsdMsg1"));
             return "/site/setting";//表示修改密码失败,重新返回到修改密码界面
         }
+    }
+
+
+    /**
+     * 实现查看个人主页功能:可以查看任何人的主页
+     * @param userId    需要查看的个人主页对应的用户id(通过请求路径传入,在请求方法中通过注解进行解析)
+     * @param model     向页面返回参数
+     * @return
+     */
+    @RequestMapping(path = "/profile/{userId}", method = RequestMethod.GET)
+    public String getProfilePage(@PathVariable("userId") int userId, Model model) {
+        //1.通过传入的userId得到对应的用户
+        User user = userService.findUserById(userId);
+        //2.判断当前用户是否存在
+        if (user == null) {
+            throw new RuntimeException("该用户不存在!");
+        }
+        //3.返回当前用户到页面
+        model.addAttribute("user", user);
+        //4.得到当前用户被点赞的数量,并存储到请求域中
+        int likeCount = likeService.findUserLikeCount(userId);
+        model.addAttribute("likeCount", likeCount);
+
+        //5.查询当前用户关注(用户)的数量(当前个人主页显示的是关注的用户总数)
+        long followeeCount = followService.findFolloweeCount(userId, ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount", followeeCount);
+        //6.查询当前用户的粉丝的数量
+        long followerCount = followService.findFollowerCount(ENTITY_TYPE_USER, userId);
+        model.addAttribute("followerCount", followerCount);
+        //7.当前登录用户对此时访问的用户,是否已关注
+        boolean hasFollowed = false;
+        if (hostHolder.getUser() != null) {
+            hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
+        }
+        model.addAttribute("hasFollowed", hasFollowed);
+        //8.返回到个人主页模板
+        return "/site/profile";
     }
 
 }

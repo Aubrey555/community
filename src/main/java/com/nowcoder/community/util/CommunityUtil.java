@@ -28,7 +28,7 @@ public class CommunityUtil {
 
     /**
      * 获取JSON格式的字符串:将传入的信息封装为JSON对象,再将JSON对象封装为JSON格式的字符串返回
-     * @param code  编号(比如响应代码的编号)
+     * @param code  编号(比如自定义的响应代码的编号)
      * @param msg   提示信息
      * @param map   封装业务数据
      * @return

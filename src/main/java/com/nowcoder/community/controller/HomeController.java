@@ -4,7 +4,9 @@ import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.DiscussPostService;
+import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,11 +28,13 @@ import java.util.Map;
  */
 @Controller
 //@RequestMapping("/community")   //访问路径前缀,如果加上则请求路径必须带/community
-public class HomeController {
+public class HomeController implements CommunityConstant {
     @Autowired  //注入组件
     private DiscussPostService discussPostService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private LikeService likeService;
     /**
      *
      * @param model   Model中封装服务器获取的相关数据,传到客户端页面进行读取
@@ -55,6 +59,10 @@ public class HomeController {
                 map.put("post",post);
                 User user = userService.findUserById(post.getUserId());
                 map.put("user",user);
+                //向请求域中加入首页中每个帖子当前点赞的数量
+                long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, post.getId());
+                //将点赞数量加入请求域中,前端界面进行访问
+                map.put("likeCount",likeCount);
                 discussPosts.add(map);//将map集合加入到discussPosts中
             }
         }

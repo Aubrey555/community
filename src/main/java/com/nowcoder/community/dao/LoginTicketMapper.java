@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.*;
  * @Date:2022/10/26 14:47
  * @Description: 登录凭证实体类的mapper接口,完成crud方法
  */
+@Deprecated     //表示当前LoginTicket数据访问层已经过时,不再与数据库进行链接
 //@Mapper       //已经在主类进行所有mapper接口的扫描,此处可以不用写该注解
 public interface LoginTicketMapper {
     //对于crud方法,可以直接写在方法上

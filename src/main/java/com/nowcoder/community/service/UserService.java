@@ -7,9 +7,11 @@ import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.MailClient;
+import com.nowcoder.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -19,13 +21,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService implements CommunityConstant { //实现该接口,具有常量值,表示激活状态
     @Resource
     private UserMapper userMapper;
-    @Resource
-    private LoginTicketMapper loginTicketMapper;//注入LoginTicket类的数据访问层的mapper接口
+//    @Resource
+//    private LoginTicketMapper loginTicketMapper;//注入LoginTicket类的数据访问层的mapper接口
 
     @Autowired
     private MailClient mailClient;//邮箱客户端:提供发邮件功能(将发邮件的功能委托给新浪完成,即类似于客户端)
@@ -36,6 +39,8 @@ public class UserService implements CommunityConstant { //实现该接口,具有
     private String domain;
     @Value("${server.servlet.context-path}")//从配置文件中获得项目名(community)
     private String contextPath;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 该方法用于进行用户注册,并返回注册账号功能中的用户相关信息
@@ -118,19 +123,24 @@ public class UserService implements CommunityConstant { //实现该接口,具有
             return ACTIVATION_REPEAT;
         } else if (user.getActivationCode().equals(code)) {//否则不为1,则激活用户
             userMapper.updateStatus(userId, 1);//激活用户
+            clearCache(userId);//此时缓存中的数据状态修改,从缓存中清除数据
             return ACTIVATION_SUCCESS;
         } else {
             return ACTIVATION_FAILURE;//否则就是不等于,表示激活失败
         }
     }
 
-    /**
+    /** 重构
      * 该方法标识根据用户id查询用户
      * @param id
      * @return
      */
     public User findUserById(int id) {
-        return userMapper.selectById(id);
+//        return userMapper.selectById(id);
+        //1.优先从缓存中获得数据
+        User user = getCache(id);
+        //2.缓存中不存在,则初始化缓存,并返回数据
+        return user == null ? initCache(id) : user;
     }
 
     /**
@@ -178,7 +188,13 @@ public class UserService implements CommunityConstant { //实现该接口,具有
         loginTicket.setTicket(CommunityUtil.generateUUID());//用户的凭证字符为随机字符串
         loginTicket.setStatus(0);//用户状态(0--正常有效,1--过期无效)
         loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));//设置用户凭证的过期时间
-        loginTicketMapper.insertLoginTicket(loginTicket);
+//        loginTicketMapper.insertLoginTicket(loginTicket);//向数据库中存储登陆凭证
+
+        //此时将登陆凭证存储到redis中,不向数据库中存储
+            //生成凭证对应的key
+        String redisKey = RedisKeyUtil.getTicketKey(loginTicket.getTicket());
+            //存储此key对应的登陆凭证
+        redisTemplate.opsForValue().set(redisKey,loginTicket);
         //返回用户凭证的字符
         map.put("ticket", loginTicket.getTicket());//将用户凭证的ticket存入map进行返回
         return map;
@@ -224,6 +240,7 @@ public class UserService implements CommunityConstant { //实现该接口,具有
         //4.更新密码(更新密码为MD5加密的密码)
         password = CommunityUtil.md5(newPsd + user.getSalt());
         userMapper.updatePassword(userId, password);//用户更新后的密码
+        clearCache(userId);//清除缓存
         return map;
     }
 
@@ -232,21 +249,69 @@ public class UserService implements CommunityConstant { //实现该接口,具有
      * @param ticket
      */
     public void logout(String ticket) {
-        loginTicketMapper.updateStatus(ticket, 1);
+//        loginTicketMapper.updateStatus(ticket, 1);
+        //此时即将ticket对应的登陆凭证LoginTicket取出,然后将其状态改为1后再存入
+        String redisKey = RedisKeyUtil.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket)redisTemplate.opsForValue().get(redisKey);
+        loginTicket.setStatus(1);//登陆凭证设置为1,表示用户退出
+        //再将此凭证存储到redis中
+        redisTemplate.opsForValue().set(redisKey,loginTicket);//新值会覆盖旧值
     }
 
-    //根据ticket凭证获得对应实体类LoginTicket
+    /** 重构:此时即需要在redis中进行获取
+     * 根据ticket凭证获得对应实体类LoginTicket
+     * @param ticket
+     * @return
+     */
     public LoginTicket findLoginTicket(String ticket) {
-        return loginTicketMapper.selectByTicket(ticket);
+//        return loginTicketMapper.selectByTicket(ticket);
+        String redisKey = RedisKeyUtil.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket)redisTemplate.opsForValue().get(redisKey);
+        return loginTicket;
     }
 
     //通过用户的userId更新用户的头像路径headerUrl
     public int updateHeader(int userId, String headerUrl) {
-        return userMapper.updateHeader(userId, headerUrl);
+        int i = userMapper.updateHeader(userId, headerUrl);
+        clearCache(userId);
+        return i;
     }
 
     //通过用户名查找用户
     public User findUserByName(String toName) {
         return userMapper.selectByName(toName);
+    }
+
+    //从缓存中查询数据的步骤:先尝试从缓存中取值;如果没有取到表示缓存还未初始化;数据如果变更则清除缓存数据。
+        //以下三个方法主要在UserService内部进行调用
+    /**
+     * 1.优先从缓存中取值
+     * @param userId
+     * @return      从缓存中获得userId对应的用户
+     */
+    private User getCache(int userId) {
+        String redisKey = RedisKeyUtil.getUserKey(userId);
+        return (User) redisTemplate.opsForValue().get(redisKey);
+    }
+
+    /**
+     * 2.取不到时初始化缓存数据
+     * @param userId
+     * @return  即从mysql中获得userId对应的用户返回,并将该用户加入缓存中
+     */
+    private User initCache(int userId) {
+        User user = userMapper.selectById(userId);
+        String redisKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.opsForValue().set(redisKey, user, 3600, TimeUnit.SECONDS);//设置缓存中此用户对象的过期时间为1h
+        return user;
+    }
+
+    /**
+     * 3.数据变更时清除缓存数据
+     * @param userId    该用户信息只要变更就进行删除(更新可能会存在并发问题)
+     */
+    private void clearCache(int userId) {
+        String redisKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.delete(redisKey);
     }
 }

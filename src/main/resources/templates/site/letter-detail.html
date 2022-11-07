@@ -121,7 +121,7 @@
 				<ul class="list-unstyled mt-4">
 					<!--遍历会话中的所有私信集合letters,得到集合中的元素map(其中封装每条信息以及该信息对应的用户)-->
 					<li class="media pb-3 pt-3 mb-2" th:each="map:${letters}">
-						<a href="profile.html">
+						<a th:href="@{|/user/profile/${map.fromUser.id}|}">
 							<!--当前信息对应的用户头像-->
 							<img th:src="${map.fromUser.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" >
 						</a>

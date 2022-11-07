@@ -79,7 +79,7 @@
 				<!-- 作者 -->
 				<div class="media pb-3 border-bottom">
 					<!--作者头像的超链接th:src-->
-					<a href="profile.html">
+					<a th:href="@{|/user/profile/${user.id}|}">
 						<img th:src="${user.headerUrl}" class="align-self-start mr-4 rounded-circle user-header" alt="用户头像" >
 					</a>
 					<div class="media-body">
@@ -89,7 +89,21 @@
 						<div class="text-muted mt-3">
 							发布于 <b th:text="${#dates.format(post.createTime,'yyyy-MM-dd HH:mm:ss')}">2019-04-15 15:32:18</b>
 							<ul class="d-inline float-right">
-								<li class="d-inline ml-2"><a href="#" class="text-primary">赞 11</a></li>
+								<!--此处表示点赞后不触发超链接,而是一个onclick的单击事件(单击事件中封装ajax请求需要传递给控制器的相关参数),
+											单击事件触发后发送一个ajax异步请求.当前界面一共有三处地方进行点赞:帖子点赞 评论点赞 评论的回复点赞
+											 传入this,表示为当前节点的赞;1表示当前点赞是向帖子;post.id为当前帖子的id,单击事件触发like方法
+											 ajax请求返回当前用户对当前帖子的点赞状态:返回0表示没有点赞,则此处应该显示赞;返回1表示已赞,则显示已赞-->
+								<li class="d-inline ml-2">
+									<a href="javascript:;"
+									    	th:onclick="|like(this,1,${post.id},${post.userId});|" class="text-primary">
+										<!--此处对于赞：文本可以根据ajax请求返回结果进行动态处理;对于当前帖子的点赞总数为变量,通过请求域数据得到
+												(在单击事件绑定的ajax请求事件中也进行了点赞状态和数量的处理,与此处不同在于:
+													th:text是浏览器第一次进入该界面,访问控制器(path = "/detail/{discussPostId}"),控制器返回当前用户当前状态下的点赞状态和数量
+													js请求是服务器对于当前用户每次点击点赞按钮做出的响应(path = "/like")
+													以下同理-->
+											<b th:text="${likeStatus == 1?'已赞':'赞'}">赞</b>(<i th:text="${likeCount}">11</i>)
+									</a>
+								</li>
 								<li class="d-inline ml-2">|</li>
 								<li class="d-inline ml-2"><a href="#replyform" class="text-primary">回帖 <i th:text="${post.commentCount}">7</i></a></li>
 							</ul>
@@ -118,7 +132,7 @@
 				<ul class="list-unstyled mt-4">
 					<!--循环得到当前帖子post的所有评论comments(映射的集合为commentVoList),评论集合中每个元素都是一个map集合commentVo,存储当前评论的所有回复信息-->
 					<li class="media pb-3 pt-3 mb-3 border-bottom" th:each="cvo:${comments}">
-						<a href="profile.html">
+						<a th:href="@{|/user/profile/${cvo.user.id}|}">
 							<!--得到当前评论的用户头像-->
 							<img th:src="${cvo.user.headerUrl}" class="align-self-start mr-4 rounded-circle user-header" alt="用户头像" >
 						</a>
@@ -139,7 +153,12 @@
 								<!--评论的发布时间-->
 								<span>发布于 <b th:text="${#dates.format(cvo.comment.createTime,'yyyy-MM-dd HH:mm:ss')}">动态时间,会被替换</b></span>
 								<ul class="d-inline float-right">
-									<li class="d-inline ml-2"><a href="#" class="text-primary">赞(1)</a></li>
+									<!--此处点赞内容处理逻辑类似于前面的对于帖子点赞-->
+									<li class="d-inline ml-2">
+										<a href="javascript:;" th:onclick="|like(this,2,${cvo.comment.id},${cvo.comment.userId});|" class="text-primary">
+											<b th:text="${cvo.likeStatus == 1?'已赞':'赞'}">赞</b>(<i th:text="${cvo.likeCount}">11</i>)
+										</a>
+									</li>
 									<li class="d-inline ml-2">|</li>
 									<!--当前评论的回复总数-->
 									<li class="d-inline ml-2"><a href="#" class="text-primary">回复(<i th:text="${cvo.replyCount}">动态回复次数,会被替换</i>)</a></li>
@@ -168,7 +187,12 @@
 										<!--回复的时间-->
 										<span th:text="${#dates.format(rvo.reply.createTime,'yyyy-MM-dd HH:mm:ss')}">2019-04-15 15:32:18</span>
 										<ul class="d-inline float-right">
-											<li class="d-inline ml-2"><a href="#" class="text-primary">赞(1)</a></li>
+											<!--此处点赞内容处理逻辑类似于前面的对于帖子点赞-->
+											<li class="d-inline ml-2">
+												<a href="#javascript:;" th:onclick="|like(this,2,${rvo.reply.id},${rvo.reply.userId});|" class="text-primary">
+													<b th:text="${rvo.likeStatus == 1?'已赞':'赞'}">赞</b>(<i th:text="${rvo.likeCount}">11</i>)
+												</a>
+											</li>
 											<li class="d-inline ml-2">|</li>
 											<!--对于每个回复的回复框,与每个回复id（th:id="|huifu-${rvoStat.count}|）进行匹配-->
 											<li class="d-inline ml-2"><a th:href="|#huifu-${rvoStat.count}|" data-toggle="collapse" class="text-primary">回复</a></li>
@@ -319,5 +343,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
 	<script th:src="@{/js/global.js}"></script>
+	<!--创建当前帖子详情界面引用的js文件,该文件用于处理帖子详情界面的三个点赞功能-->
+	<script th:src="@{/js/discuss.js}"></script>
 </body>
 </html>
