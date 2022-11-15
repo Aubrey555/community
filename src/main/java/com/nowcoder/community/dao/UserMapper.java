@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Select;
  * @Date:2022/10/19 17:18
  * @Description:
  */
-//@Mapper //该注解用于标识此类为一个mapper接口,用于操作数据库(或者在主配置类上加@MapperScan注解，则其他的mapper就可以不用标注@Mapper注解)
+@Mapper //该注解用于标识此类为一个mapper接口,用于操作数据库(或者在主配置类上加@MapperScan注解，则其他的mapper就可以不用标注@Mapper注解)
 public interface UserMapper {
     //该方法标识根据id查询用户
     @Select("select * from user where id = #{id}")

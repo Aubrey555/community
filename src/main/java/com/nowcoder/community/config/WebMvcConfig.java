@@ -3,6 +3,7 @@ package com.nowcoder.community.config;
 import com.nowcoder.community.controller.interceptor.AlphaInterceptor;
 import com.nowcoder.community.controller.interceptor.LoginRequiredInterceptor;
 import com.nowcoder.community.controller.interceptor.LoginTicketInterceptor;
+import com.nowcoder.community.controller.interceptor.MessageInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -20,6 +21,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private LoginRequiredInterceptor loginRequiredInterceptor;  //获得用于验证用户登录状态的拦截器
 
+    @Autowired
+    private MessageInterceptor messageInterceptor;//该拦截器用户在每次请求后获得当前用户的所有未读消息数量
+
     @Override       //注册拦截器接口
     public void addInterceptors(InterceptorRegistry registry) {
         //注册自定义的拦截器接口
@@ -36,6 +40,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         //表示该拦截器排除对所有静态资源的拦截
         registry.addInterceptor(loginRequiredInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+
+        //该拦截器对所有静态资源都放行,拦截所有动态请求
+        registry.addInterceptor(messageInterceptor)
                 .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
     }
 }

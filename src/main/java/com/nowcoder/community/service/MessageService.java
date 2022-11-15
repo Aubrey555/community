@@ -73,8 +73,10 @@ public class MessageService {
      * @return
      */
     public int addMessage(Message message) {
+        //敏感词过滤
         message.setContent(HtmlUtils.htmlEscape(message.getContent()));
         message.setContent(sensitiveFilter.filter(message.getContent()));
+        //添加Message对象到数据库中
         return messageMapper.insertMessage(message);
     }
 
@@ -87,4 +89,45 @@ public class MessageService {
         return messageMapper.updateStatus(ids, 1);
     }
 
+    /**
+     * 查询指定用户userId在主题topic下的最新通知Message
+     * @param userId
+     * @param topic
+     * @return
+     */
+    public Message findLatestNotice(int userId, String topic) {
+        return messageMapper.selectLatestNotice(userId, topic);
+    }
+
+    /**
+     * 查询用户userId在该主题topic下的所有通知数量
+     * @param userId
+     * @param topic
+     * @return
+     */
+    public int findNoticeCount(int userId, String topic) {
+        return messageMapper.selectNoticeCount(userId, topic);
+    }
+
+    /**
+     * 查询用户userId在该主题topic下的所有未读通知数量
+     * @param userId
+     * @param topic
+     * @return
+     */
+    public int findNoticeUnreadCount(int userId, String topic) {
+        return messageMapper.selectNoticeUnreadCount(userId, topic);
+    }
+
+    /**
+     * 分页查询用户userId在主题topic下的所有通知Message信息
+     * @param userId
+     * @param topic
+     * @param offset
+     * @param limit
+     * @return
+     */
+    public List<Message> findNotices(int userId, String topic, int offset, int limit) {
+        return messageMapper.selectNotices(userId, topic, offset, limit);
+    }
 }

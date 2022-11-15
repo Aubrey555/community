@@ -95,7 +95,7 @@
 											 ajax请求返回当前用户对当前帖子的点赞状态:返回0表示没有点赞,则此处应该显示赞;返回1表示已赞,则显示已赞-->
 								<li class="d-inline ml-2">
 									<a href="javascript:;"
-									    	th:onclick="|like(this,1,${post.id},${post.userId});|" class="text-primary">
+									    	th:onclick="|like(this,1,${post.id},${post.userId},${post.id});|" class="text-primary">
 										<!--此处对于赞：文本可以根据ajax请求返回结果进行动态处理;对于当前帖子的点赞总数为变量,通过请求域数据得到
 												(在单击事件绑定的ajax请求事件中也进行了点赞状态和数量的处理,与此处不同在于:
 													th:text是浏览器第一次进入该界面,访问控制器(path = "/detail/{discussPostId}"),控制器返回当前用户当前状态下的点赞状态和数量
@@ -155,7 +155,7 @@
 								<ul class="d-inline float-right">
 									<!--此处点赞内容处理逻辑类似于前面的对于帖子点赞-->
 									<li class="d-inline ml-2">
-										<a href="javascript:;" th:onclick="|like(this,2,${cvo.comment.id},${cvo.comment.userId});|" class="text-primary">
+										<a href="javascript:;" th:onclick="|like(this,2,${cvo.comment.id},${cvo.comment.userId},${post.id});|" class="text-primary">
 											<b th:text="${cvo.likeStatus == 1?'已赞':'赞'}">赞</b>(<i th:text="${cvo.likeCount}">11</i>)
 										</a>
 									</li>
@@ -189,7 +189,7 @@
 										<ul class="d-inline float-right">
 											<!--此处点赞内容处理逻辑类似于前面的对于帖子点赞-->
 											<li class="d-inline ml-2">
-												<a href="#javascript:;" th:onclick="|like(this,2,${rvo.reply.id},${rvo.reply.userId});|" class="text-primary">
+												<a href="#javascript:;" th:onclick="|like(this,2,${rvo.reply.id},${rvo.reply.userId},${post.id});|" class="text-primary">
 													<b th:text="${rvo.likeStatus == 1?'已赞':'赞'}">赞</b>(<i th:text="${rvo.likeCount}">11</i>)
 												</a>
 											</li>

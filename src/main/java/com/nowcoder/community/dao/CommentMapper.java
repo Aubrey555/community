@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
-//@Mapper //已经在主类进行所有mapper接口的扫描,此处可以不用写该注解
+@Mapper //已经在主类进行所有mapper接口的扫描,此处可以不用写该注解
 public interface CommentMapper {
     /**
      * 根据实体entityType查询所有的评论(即查询帖子的评论,还是评论的评论,还是视频课程的评论等)
@@ -27,4 +27,6 @@ public interface CommentMapper {
     int selectCountByEntity(int entityType, int entityId);
     //插入一条评论
     int insertComment(Comment comment);
+    //根据id查询评论
+    Comment selectCommentById(int id);
 }

@@ -38,6 +38,9 @@ public class ServiceLogAspect {
     public void before(JoinPoint joinPoint) {
         //1.通过工具类RequestContextHolder获取其子类型ServletRequestAttributes对象
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if(attributes == null){     //此时调用service业务的可能不是控制层业务(kafka实现消息队列中,使用了生产者消费者也调用了业务曾组件),因此不存在请求,attrbiutes为空
+            return;     //此时不记录日志,直接退出即可
+        }
         //2.通过attributes得到当前请求的request对象
         HttpServletRequest request = attributes.getRequest();
         //3.得到当前请求的ip地址

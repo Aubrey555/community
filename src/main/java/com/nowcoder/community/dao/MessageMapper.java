@@ -35,4 +35,16 @@ public interface MessageMapper {
 
     //7. 修改消息的状态(根据多个私信的id进行修改,可以设置已读或者删除等)
     int updateStatus(List<Integer> ids, int status);
+
+    //8. 查询某个主题下最新的通知(最新时间):传入指定用户指定主题
+    Message selectLatestNotice(int userId, String topic);
+
+    //9. 查询某个主题所包含的通知数量(即此主题下通知的总数)
+    int selectNoticeCount(int userId, String topic);
+
+    //10.查询未读的通知的数量(未读通知数量),此时允许topic=null,表示查询所有主题(点赞评论关注)的未读数量
+    int selectNoticeUnreadCount(int userId, String topic);
+
+    //11.查询某个主题所包含的通知列表
+    List<Message> selectNotices(int userId, String topic, int offset, int limit);
 }

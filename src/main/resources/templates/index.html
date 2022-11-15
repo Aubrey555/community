@@ -28,7 +28,9 @@
 							</li>
 							<!--对于"消息"登陆内容,进行选择性显示(只有登录用户才进行显示,也就是在拦截器中配置的loginUser不为空时)-->
 							<li class="nav-item ml-3 btn-group-vertical" th:if="${loginUser!=null}">
-								<a class="nav-link position-relative" th:href="@{/letter/list}">消息<span class="badge badge-danger">12</span></a>
+								<a class="nav-link position-relative" th:href="@{/letter/list}" >消息
+									<span class="badge badge-danger" th:text="${allUnreadCount!=0?allUnreadCount:''}">12</span>
+								</a>
 							</li>
 							<!--只有用户未登录,才显示"注册"超链接文本(即在拦截器中配置的loginUser为空)-->
 							<li class="nav-item ml-3 btn-group-vertical" th:if="${loginUser==null}">
@@ -53,9 +55,13 @@
 								</div>
 							</li>
 						</ul>
-						<!-- 搜索 -->
-						<form class="form-inline my-2 my-lg-0" action="site/search.html">
-							<input class="form-control mr-sm-2" type="search" aria-label="Search" />
+						<!-- 搜索功能 -->
+						<!--该表单提交的请求方式为get,提交请求路径为th:action-->
+						<form class="form-inline my-2 my-lg-0" method="get" th:action="@{/search}">
+							<!--name="keyword"指定该文本框中参数的name,与控制器中接受的参数名需要一致
+								th:value="${keyword}"会得到上次在文本框输入的值
+									type="submit" 点击搜索文本,即可提交此表单请求-->
+							<input class="form-control mr-sm-2" type="search" aria-label="Search" name="keyword" th:value="${keyword}"/>
 							<button class="btn btn-outline-light my-2 my-sm-0" type="submit">搜索</button>
 						</form>
 					</div>

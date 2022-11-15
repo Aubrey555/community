@@ -1,9 +1,7 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.entity.Comment;
-import com.nowcoder.community.entity.DiscussPost;
-import com.nowcoder.community.entity.Page;
-import com.nowcoder.community.entity.User;
+import com.nowcoder.community.entity.*;
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.service.LikeService;
@@ -39,6 +37,8 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired  //通过该组件注入当前帖子详情界面,每个评论/评论的回复  的赞的数量
     private LikeService likeService;
 
+    @Autowired
+    private EventProducer eventProducer;//生产者组件
     /**
      * 实现发布帖子的功能
      * @param title     页面传入帖子标题
@@ -62,6 +62,15 @@ public class DiscussPostController implements CommunityConstant {
         post.setCreateTime(new Date());//发帖时间为当前时间
         //3.发布帖子(保存到服务器)
         discussPostService.addDiscussPost(post);
+        //触发发帖事件,将帖子传入ES服务器
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)    //当前事件的主题为:TOPIC_PUBLISH，表示为发帖,则加入到消息队列
+                .setUserId(user.getId())    //得到当前发贴用户的id
+                .setEntityType(ENTITY_TYPE_POST)    //实体类型为POST
+                .setEntityId(post.getId()); //得到帖子的id
+        eventProducer.fireEvent(event);     //触发事件,将事件加入到消息队列
+
+
         //4.发布成功,返回响应码为0(报错的情况,将来统一处理.),返回json格式的字符串
         return CommunityUtil.getJSONString(0, "发布成功!");
     }

@@ -30,6 +30,12 @@
         and entity_type = #{entityType} -- 该实体类型评论的条数
         and entity_id = #{entityId}
     </select>
+    <!--根据id查询评论 Comment selectCommentById(int id);-->
+    <select id="selectCommentById" resultType="Comment">
+        select <include refid="selectFields"></include>
+        from comment
+        where id = #{id}
+    </select>
 
     <!--插入一条评论  int insertComment(Comment comment);-->
     <insert id="insertComment" parameterType="Comment" useGeneratedKeys="true" keyProperty="id">

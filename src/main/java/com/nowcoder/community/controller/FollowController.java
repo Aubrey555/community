@@ -1,7 +1,9 @@
 package com.nowcoder.community.controller;
 
+import com.nowcoder.community.entity.Event;
 import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.FollowService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
@@ -30,6 +32,9 @@ public class FollowController implements CommunityConstant {
     @Autowired
     private UserService userService;
 
+    @Autowired  //注入EventProducer组件,用于在关注事件被触发后,生产者组件被调用,向消息队列中发送事件对象Event
+    private EventProducer eventProducer;
+
     /**
      * 实现关注功能
      *      浏览器发送异步请求,控制方法进行响应
@@ -41,9 +46,21 @@ public class FollowController implements CommunityConstant {
     @ResponseBody
     public String follow(int entityType, int entityId) {
         User user = hostHolder.getUser();//获取当前用户
-        //实现关注功能
+        //1.实现关注功能
         followService.follow(user.getId(), entityType, entityId);
-        //关注成功,返回json对象(异步请求)
+
+        //2.实现生产者发送关注通知:    在某用户进行关注后,触发关注事件,生产者发布消息到消息队列的指定主题中
+        Event event = new Event()
+                .setTopic(TOPIC_FOLLOW)     //此时为关注事件,因此发布到关注主题(服务器启动后,kafka会自动创建主题)
+                .setUserId(hostHolder.getUser().getId())    //触发事件的用户,即当前进行关注的人
+                .setEntityType(entityType)    //触发事件用户操作的实体类型(即此时关注的对象,当前业务下只对用户进行关注)
+                .setEntityId(entityId)      //实体类型对应的主键id
+                .setEntityUserId(entityId);     //当前业务下只能对用户进行关注,因此EntityUserId即为实体类型的id,即为用户id即可(都唯一)
+            //此时前端页面点击关注的通知,跳转到的是当前关注人员的主页,即为hostHolder.getUser().getId()即可(即A关注B,B点击通知,跳转到的是A的主页)
+            //调用生产者组件,将触发事件event发送到消息队列中
+        eventProducer.fireEvent(event);
+
+        //3.关注成功,返回json对象(异步请求)
         return CommunityUtil.getJSONString(0, "已关注!");
     }
 

@@ -1,8 +1,8 @@
-function like(btn, entityType, entityId, entityUserId) {    //定义like()方法,响应discuss-detail界面的单击事件
+function like(btn, entityType, entityId, entityUserId,postId) {    //定义like()方法,响应discuss-detail界面的单击事件
     //接收前端传入的参数(btn:对应的点赞位置按钮(一共三个) entityType:被点赞的实体类(帖子/评论/评论的回复) entityId:实体类对应的id)
     $.post( //发送异步请求
         CONTEXT_PATH + "/like",//请求路径
-        {"entityType":entityType,"entityId":entityId,"entityUserId":entityUserId},//异步请求携带参数
+        {"entityType":entityType,"entityId":entityId,"entityUserId":entityUserId,"postId":postId},//异步请求携带参数
         function(data) {//服务器返回数据data
             data = $.parseJSON(data);//将服务器返回的数据转化为JS对象
             if(data.code == 0) {//data中的code为0表示处理成功
