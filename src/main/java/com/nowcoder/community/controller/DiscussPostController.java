@@ -9,7 +9,9 @@ import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
+import com.nowcoder.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +39,8 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired  //通过该组件注入当前帖子详情界面,每个评论/评论的回复  的赞的数量
     private LikeService likeService;
 
+    @Autowired      //向redis中存储更新的帖子,从而计算帖子得分
+    private RedisTemplate redisTemplate;
     @Autowired
     private EventProducer eventProducer;//生产者组件
     /**
@@ -69,6 +73,10 @@ public class DiscussPostController implements CommunityConstant {
                 .setEntityType(ENTITY_TYPE_POST)    //实体类型为POST
                 .setEntityId(post.getId()); //得到帖子的id
         eventProducer.fireEvent(event);     //触发事件,将事件加入到消息队列
+
+        //计算帖子分数:将更新的帖子id放到redisKey键对应的Set集合中
+        String redisKey = RedisKeyUtil.getPostScoreKey();//得到计算帖子评分对应的键
+        redisTemplate.opsForSet().add(redisKey,post.getId());//存储帖子id到Redis的Set集合中(保证无重复存储数据,对应键为redisKey)
 
 
         //4.发布成功,返回响应码为0(报错的情况,将来统一处理.),返回json格式的字符串
@@ -178,6 +186,76 @@ public class DiscussPostController implements CommunityConstant {
         model.addAttribute("comments", commentVoList);
         //7. 加载帖子详情模板界面
         return "/site/discuss-detail";
+    }
+
+    /**
+     * 处理帖子置顶请求:为异步请求,即页面点击后不进行整体刷新,而是局部进行更新
+     * @param id    传回帖子id
+     * @return
+     */
+    @RequestMapping(path = "/top", method = RequestMethod.POST)
+    @ResponseBody       //返回JSON类型字符串:响应状态码返回,表示是否置顶成功
+    public String setTop(int id) {
+        //1.更新帖子类型为1,表示置顶
+        discussPostService.updateType(id, 1);
+
+        //2.帖子发生变化,就需要将最新的帖子数据同步到ElasticSearch搜索引擎中,即触发发帖事件(将新的帖子进行更新)
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUser().getId())    //当前用户
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);//响应状态码0返回,表示置顶成功
+    }
+
+    /**
+     * 处理帖子加精请求
+     * @param id    帖子id
+     * @return
+     */
+    @RequestMapping(path = "/wonderful", method = RequestMethod.POST)
+    @ResponseBody
+    public String setWonderful(int id) {
+        //1.帖子加精请求:状态为0为正常;1为加精;2为拉黑(删除)
+        discussPostService.updateStatus(id, 1);
+
+        //2.此时帖子也发生变化,因此触发发帖事件,将最新的帖子数据同步到ElasticSearch搜索引擎中
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+         //计算帖子分数::将更新的帖子id放到redisKey键对应的Set集合中
+        String redisKey = RedisKeyUtil.getPostScoreKey();
+        redisTemplate.opsForSet().add(redisKey, id);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
+    /**
+     * 处理帖子删除请求
+     * @param id   删除帖子的id
+     * @return
+     */
+    @RequestMapping(path = "/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public String setDelete(int id) {
+        //1.帖子删除请求。状态为0为正常;1为加精;2为拉黑(删除)
+        discussPostService.updateStatus(id, 2);
+
+        //2.触发删帖事件,此时不再是将帖子更新到ES中,而需要将帖子从ES中进行删除(即出发删帖事件)
+        Event event = new Event()
+                .setTopic(TOPIC_DELETE)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+        //3.返回删除成功代码
+        return CommunityUtil.getJSONString(0);
     }
 
 }

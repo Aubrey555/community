@@ -6,6 +6,10 @@ import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CookieUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -39,6 +43,13 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
                 // 在本次请求中持有用户(在后面使用,此处直接存入即可)
                     //此处即将User数据存储在当前线程对应的map集合中,只要当前请求处理未结束,则线程一直存在,请求处理结束,服务器做出响应,则该线程被销毁
                 hostHolder.setUser(user);
+
+                //构建用户认证的结果,并存入SercurityContext中。以便于Security进行授权
+                Authentication authentication = new UsernamePasswordAuthenticationToken(
+                        user, user.getPassword(), userService.getAuthorities(user.getId()));
+                //存入SecurityContext中
+                SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+
             }
         }
         return true;//放行请求
@@ -57,5 +68,6 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         hostHolder.clear();
+        SecurityContextHolder.clearContext();//清除用户认证信息
     }
 }

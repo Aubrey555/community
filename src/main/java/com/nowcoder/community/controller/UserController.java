@@ -8,16 +8,15 @@ import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
+import com.qiniu.util.Auth;
+import com.qiniu.util.StringMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -52,22 +51,68 @@ public class UserController implements CommunityConstant {
 
     @Autowired  //实现访问个人主页的功能
     private FollowService followService;
+
+    @Value("${qiniu.key.access}")
+    private String accessKey;//AK密钥,确认是否为对象空间的创建者
+
+    @Value("${qiniu.key.secret}")
+    private String secretKey;//文件加密的密钥
+
+    @Value("${qiniu.bucket.header.name}")
+    private String headerBucketName;//存储头像文件的对象空间
+
+    @Value("${qiniu.bucket.header.url}")
+    private String headerBucketUrl;//存储头像文件的对象空间的域名
+
     /**
-     * 访问账号设置界面
+     * 访问账号设置界面：
+     *      生成一个上传凭证到账号设置界面的上传头像文件表单中,通过此凭证使得七牛云服务器可以识别此请求,接收用户的头像文件到对象空间内。
      * @return
      */
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
-    public String getSettingPage() {
+    public String getSettingPage(Model model) {
+        //1.上传文件名称
+        String fileName = CommunityUtil.generateUUID();
+        //2.设置响应信息:即将资源上传给七牛云后,规定七牛云可以做出的响应
+        StringMap policy = new StringMap();
+        policy.put("returnBody", CommunityUtil.getJSONString(0));//则上传成功,则返回JSON字符串code:0即可,即操作成功
+        //3.通过文件名称和响应信息生成上传凭证
+        Auth auth = Auth.create(accessKey, secretKey);//上传两个key密钥(ak和sk)
+            //利用auth生成上传凭证字符串(传入对象空间名成/生成的文件名/过期时间/响应信息)
+        String uploadToken = auth.uploadToken(headerBucketName, fileName, 3600, policy);
+        //4.将凭证字符串传给浏览器表单,表单界面根据此凭证信息将头像文件异步上传到七牛云服务器
+        model.addAttribute("uploadToken", uploadToken);
+        model.addAttribute("fileName", fileName);
         return "/site/setting";
     }
-
     /**
+     * 更新头像路径:处理异步ajax请求,将头像文件上传到七牛云服务器后,还要更新该用户在数据库的头像路径
+     *      在异步ajax请求中,如果头像上传成功,则更新当前用户头像
+     * @param fileName  七牛云中存储的头像文件名称
+     * @return
+     */
+    @RequestMapping(path = "/header/url", method = RequestMethod.POST)
+    @ResponseBody
+    public String updateHeaderUrl(String fileName) {
+        if (StringUtils.isBlank(fileName)) {
+            return CommunityUtil.getJSONString(1, "文件名不能为空!");
+        }
+        //1.得到七牛云服务器存储的头像文件的访问路径(域名)
+        String url = headerBucketUrl + "/" + fileName;
+        //2.根据用户id更新用户头像地址
+        userService.updateHeader(hostHolder.getUser().getId(), url);
+        //3.异步请求,返回JSON字符串信息
+        return CommunityUtil.getJSONString(0);
+    }
+
+    /**废弃方法:需要上传头像文件直接到七牛云服务器
      * 完成头像(文件)上传功能
      * @param headerImage   SpringMVC提供的处理文件的数据类型,如果为多个文件可以使用该类型的数组（name一致时,前端页面上传的文件数据会自动注入到该文件类型中）
      * @param model         向页面返回数据
      * @return
      */
+    @Deprecated
     @LoginRequired      //自定义注解LoginRequired,表示当前方法时候登录才能访问(标注此注解后,只有登录才能访问被标注的控制器方法)
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
     public String uploadHeader(MultipartFile headerImage, Model model) {
@@ -105,11 +150,12 @@ public class UserController implements CommunityConstant {
         return "redirect:/index";//重定向到首页访问路径
     }
 
-    /**
+    /**废弃方法:此时上传头像文件直接到七牛云服务器,直接在云服务器访问
      * 获取用户头像的处理
      * @param fileName  请求路径中的参数,表示文件名,可以使用@PathVariable注解获取路径中的参数变量
      * @param response  使用response写出数据
      */
+    @Deprecated
     @RequestMapping(path = "/header/{fileName}", method = RequestMethod.GET)
     public void getHeader(@PathVariable("fileName") String fileName, HttpServletResponse response) {
         // 1.当前服务器存放文件的路径

@@ -1,9 +1,6 @@
 package com.nowcoder.community.config;
 
-import com.nowcoder.community.controller.interceptor.AlphaInterceptor;
-import com.nowcoder.community.controller.interceptor.LoginRequiredInterceptor;
-import com.nowcoder.community.controller.interceptor.LoginTicketInterceptor;
-import com.nowcoder.community.controller.interceptor.MessageInterceptor;
+import com.nowcoder.community.controller.interceptor.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -18,11 +15,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private LoginTicketInterceptor loginTicketInterceptor;//注入显示用户登陆信息的拦截器
 
-    @Autowired
-    private LoginRequiredInterceptor loginRequiredInterceptor;  //获得用于验证用户登录状态的拦截器
+//    @Autowired
+//    private LoginRequiredInterceptor loginRequiredInterceptor;  //获得用于验证用户登录状态的拦截器
 
     @Autowired
     private MessageInterceptor messageInterceptor;//该拦截器用户在每次请求后获得当前用户的所有未读消息数量
+
+    @Autowired
+    private DataInterceptor dataInterceptor;//该拦截器用于在每次处理请求之前统计UV和DAU数据
 
     @Override       //注册拦截器接口
     public void addInterceptors(InterceptorRegistry registry) {
@@ -39,11 +39,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
 
         //表示该拦截器排除对所有静态资源的拦截
-        registry.addInterceptor(loginRequiredInterceptor)
-                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+//        registry.addInterceptor(loginRequiredInterceptor)
+//                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
 
         //该拦截器对所有静态资源都放行,拦截所有动态请求
         registry.addInterceptor(messageInterceptor)
+                .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
+
+        //盖莱杰奇对所有静态资源都放行,拦截所有请求
+        registry.addInterceptor(dataInterceptor)
                 .excludePathPatterns("/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg");
     }
 }

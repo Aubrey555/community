@@ -61,15 +61,15 @@ public class ElasticsearchTests {//当前6.4.3版本的ES某些功能在升级�
     @Test   //saveAll()方法插入多条数据
     public void testInsertList() {
         //传入多条数据(数据集合):表示插入101用户的100条数据对应的List集合(可能没有)
-        discussRepository.saveAll(discussMapper.selectDiscussPosts(101, 0, 100));
-        discussRepository.saveAll(discussMapper.selectDiscussPosts(102, 0, 100));
-        discussRepository.saveAll(discussMapper.selectDiscussPosts(103, 0, 100));
-        discussRepository.saveAll(discussMapper.selectDiscussPosts(111, 0, 100));
-        discussRepository.saveAll(discussMapper.selectDiscussPosts(112, 0, 100));
-        discussRepository.saveAll(discussMapper.selectDiscussPosts(131, 0, 100));
-        discussRepository.saveAll(discussMapper.selectDiscussPosts(132, 0, 100));
-        discussRepository.saveAll(discussMapper.selectDiscussPosts(133, 0, 100));
-        discussRepository.saveAll(discussMapper.selectDiscussPosts(134, 0, 100));
+        discussRepository.saveAll(discussMapper.selectDiscussPosts(101, 0, 100,0));
+        discussRepository.saveAll(discussMapper.selectDiscussPosts(102, 0, 100,0));
+        discussRepository.saveAll(discussMapper.selectDiscussPosts(103, 0, 100,0));
+        discussRepository.saveAll(discussMapper.selectDiscussPosts(111, 0, 100,0));
+        discussRepository.saveAll(discussMapper.selectDiscussPosts(112, 0, 100,0));
+        discussRepository.saveAll(discussMapper.selectDiscussPosts(131, 0, 100,0));
+        discussRepository.saveAll(discussMapper.selectDiscussPosts(132, 0, 100,0));
+        discussRepository.saveAll(discussMapper.selectDiscussPosts(133, 0, 100,0));
+        discussRepository.saveAll(discussMapper.selectDiscussPosts(134, 0, 100,0));
     }
 
     //修改ES服务器中id对应的数据

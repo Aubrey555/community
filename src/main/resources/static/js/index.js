@@ -4,6 +4,14 @@ $(function(){
 
 function publish() {
 	$("#publishModal").modal("hide");/*1. 发布完成后隐藏弹出框*/
+
+	//1.发送ajax异步请求之前,将CSRF令牌设置到请求的消息头中(csrf令牌在index.html的<head>头标签中进行了设置,此处进行获取并传入即可)
+	// var token = $("meta[name='_csrf']").attr("content");	//获取name=_csrf对应的meta元素中的content属性值,作为value
+    // var header = $("meta[name='_csrf_header']").attr("content");	//请求头信息的key
+    // $(document).ajaxSend(function(e, xhr, options){
+    //    xhr.setRequestHeader(header, token);//通过xhr设置请求头信息的key-value
+    // });
+
 	/*2. 向服务器发送异步ajax请求*/
 		//2.1 获取弹出框id="publishBtn"中的标题和内容
 	var title = $("#recipient-name").val();//发布标签中的id=recipient-name子标签即对应标题内容

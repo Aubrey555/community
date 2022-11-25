@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -71,9 +71,19 @@
 							跳转到此页面的请求方法为getDiscussPost(),该方法中向请求域中存放的帖子对象DiscussPost属性名为post-->
 					<span th:utext="${post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</span>
 					<div class="float-right">
-						<button type="button" class="btn btn-danger btn-sm">置顶</button>
-						<button type="button" class="btn btn-danger btn-sm">加精</button>
-						<button type="button" class="btn btn-danger btn-sm">删除</button>
+						<!--隐藏框<input>中传入当前帖子的id=${post.id}",置顶/加精/删除也就是对此帖子进行处理-->
+						<input type="hidden" id="postId" th:value="${post.id}">
+						<!--置顶功能实现:设置id="topBtn",在discuss.js页面中即对此id对应的标签<button>进行处理,也就是置顶功能按钮的唯一标识,与ajax事件关联
+								对于disabled属性(表示该按钮可见不可见),即当post.type==1,表示该帖子已经为置顶状态,返回true,则该按钮不可见
+								(先引入security命名空间)sec:authorize为thymeleaf对于security的扩展,"hasAnyAuthority('moderator')"表示只有版主具有此权限
+									对于没有该权限的用户则不会显示此按钮-->
+						<button type="button" class="btn btn-danger btn-sm" id="topBtn"
+								th:disabled="${post.type==1}" sec:authorize="hasAnyAuthority('moderator')">置顶</button>
+						<button type="button" class="btn btn-danger btn-sm" id="wonderfulBtn"
+								th:disabled="${post.status==1}" sec:authorize="hasAnyAuthority('moderator')">加精</button>
+						<!--post.status==2表示当前帖子状态为已经删除,则删除按钮不可用,即disabled==true-->
+						<button type="button" class="btn btn-danger btn-sm" id="deleteBtn"
+								th:disabled="${post.status==2}" sec:authorize="hasAnyAuthority('admin')">删除</button>
 					</div>
 				</h6>
 				<!-- 作者 -->

@@ -5,7 +5,11 @@ import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -22,6 +26,8 @@ import java.util.Date;
 @Service
 //@Scope("prototype")
 public class AlphaService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AlphaService.class);
 
     @Autowired
     private UserMapper userMapper;
@@ -103,6 +109,19 @@ public class AlphaService {
                 return "ok";
             }
         });
+    }
+
+    // 让该方法在多线程环境下,被异步的调用(与主线程异步).
+    //@Async  //该注解将此方法作为一个线程体被执行,使用Spring的普通线程池
+    public void execute1() {
+        logger.debug("execute1");
+    }
+
+    //@Scheduled注解可以将该方法作为一个定时任务的线程体,被定时的执行(initialDelay = 10000延迟10s后执行,fixedRate = 1000定时周期1s间隔执行)
+        //启动时被自动调用,不需要主动调
+    //@Scheduled(initialDelay = 10000, fixedRate = 1000)
+    public void execute2() {
+        logger.debug("execute2");
     }
 
 }

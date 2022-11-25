@@ -12,6 +12,10 @@ public class RedisKeyUtil {
     private static final String PREFIX_KAPTCHA = "kaptcha";//验证码键key对应的前缀
     private static final String PREFIX_TICKET = "ticket";//登陆凭证key对应的前缀
     private static final String PREFIX_USER = "user";//用户key对应的前缀
+    private static final String PREFIX_UV = "uv";   //uv表示独立访客key对应的前缀
+    private static final String PREFIX_DAU = "dau"; //dau表示日活跃用户key对应的前缀
+    private static final String PREFIX_POST = "post";//定时任务统计中所需的帖子前缀
+
 
     /**
      * 生成某个实体(帖子/评论等相关实体,以及该实体对应的id)的key值
@@ -83,6 +87,53 @@ public class RedisKeyUtil {
      */
     public static String getUserKey(int userId) {
         return PREFIX_USER + SPLIT + userId;
+    }
+
+    /**
+     * 得到单日UV对应的key,即每天都统计网站的独立访客(包含非注册的匿名用户,根据ip地址进行统计)
+     * @param date  传入某个日期的字符串(年月日)
+     * @return
+     */
+    public static String getUVKey(String date) {
+        return PREFIX_UV + SPLIT + date;
+    }
+
+    /**
+     * 得到一个区间的UV对应的key(比如一周七天的UV)
+     * @param startDate     开始日期
+     * @param endDate       结束日期
+     * @return
+     */
+    public static String getUVKey(String startDate, String endDate) {
+        return PREFIX_UV + SPLIT + startDate + SPLIT + endDate;
+    }
+
+    /**
+     * 得到某个日期的日活用户对应的key(只对登录用户按照userId进行统计)
+     * @param date  单日对应日期
+     * @return
+     */
+    public static String getDAUKey(String date) {
+        return PREFIX_DAU + SPLIT + date;
+    }
+
+    /**
+     * 得到某个区间的活跃用户对应的key
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    public static String getDAUKey(String startDate, String endDate) {
+        return PREFIX_DAU + SPLIT + startDate + SPLIT + endDate;
+    }
+
+    /**
+     * 得到统计帖子分数对应的key
+     *      redis中存储的是产生变化的多个帖子,不是某一个,因此不用传入帖子id
+     * @return
+     */
+    public static String getPostScoreKey() {
+        return PREFIX_POST + SPLIT + "score";
     }
 
 }

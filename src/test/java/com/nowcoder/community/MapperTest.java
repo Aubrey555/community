@@ -1,14 +1,19 @@
 package com.nowcoder.community;
 
+import com.nowcoder.community.dao.CommentMapper;
 import com.nowcoder.community.dao.DiscussPostMapper;
+
 import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Date;
 import java.util.List;
@@ -19,7 +24,9 @@ import java.util.List;
  * @Date:2022/10/20 17:43
  * @Description:
  */
+@RunWith(SpringRunner.class)
 @SpringBootTest
+@ContextConfiguration(classes = CommunityApplication.class)
 public class MapperTest {
     @Autowired
     UserMapper userMapper;
@@ -28,6 +35,8 @@ public class MapperTest {
     DiscussPostMapper discussPostMapper;//自动注入该类的接口
     //测试通过id/name/email查询user
 
+    @Autowired
+    CommentMapper commentMapper;
     @Autowired
     LoginTicketMapper loginTicketMapper;//测试LoginTicketMapper接口
     @Test
@@ -62,7 +71,7 @@ public class MapperTest {
     @Test
     public void testDiscussPost(){
         //表示查询userId=101用户的所有数据:并分页显示第1页的数据,每页10条
-        List<DiscussPost> discussPosts = discussPostMapper.selectDiscussPosts(101, 0, 10);
+        List<DiscussPost> discussPosts = discussPostMapper.selectDiscussPosts(101, 0, 10,0);
         for (DiscussPost post:discussPosts){
             System.out.println(post);
         }
@@ -87,5 +96,10 @@ public class MapperTest {
         LoginTicket ticket = loginTicketMapper.selectByTicket("qwertyuiop");
         System.out.println(ticket);
         int i = loginTicketMapper.updateStatus("qwertyuiop", 1);//更新用户凭证为1
+    }
+
+    @Test
+    public void test(){
+        int i = commentMapper.selectCountByEntity(1, 1);
     }
 }

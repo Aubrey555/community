@@ -1,7 +1,7 @@
 package com.nowcoder.community.util;
 
 /**
- * 该接口用于定义某个用户的激活状态,在进行邮件激活请求时使用
+ * 该接口用于定义项目中的一些常量
  */
 public interface CommunityConstant {
 
@@ -65,10 +65,32 @@ public interface CommunityConstant {
     String TOPIC_PUBLISH ="publish";
 
     /**
+     * 主题:删帖
+     */
+    String TOPIC_DELETE ="delete";
+
+    /**
+     * 主题:分享
+     */
+    String TOPIC_SHARE ="share";
+
+    /**
      * 系统用户ID
      */
     int SYSTEM_USER_ID = 1;
 
+    /**
+     * 权限:普通用户(type=0)
+     */
+    String AUTHORITY_USER = "user";
 
+    /**
+     * 权限:管理员(type=1)
+     */
+    String AUTHORITY_ADMIN = "admin";
 
+    /**
+     * 权限:帖子版主
+     */
+    String AUTHORITY_MODERATOR = "moderator";
 }

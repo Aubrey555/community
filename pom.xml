@@ -107,8 +107,35 @@
 			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
 			<version>2.1.6.RELEASE</version>
 		</dependency>
+		<!--引入Spring-Security依赖-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<!--引入thymeleaf整合Security的依赖-->
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-springsecurity5</artifactId>
+		</dependency>
+		<!--引入执行分布式环境下定时任务的线程池组件Spring Quartz-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-quartz</artifactId>
+		</dependency>
+		<!--导入七牛云服务器相关依赖:SpringBoot没有自动整合qiniu云服务器,因此需要导入版本-->
+		<dependency>
+			<groupId>com.qiniu</groupId>
+			<artifactId>qiniu-java-sdk</artifactId>
+			<version>7.2.23</version>
+		</dependency>
+		<!-- 本地缓存管理工具caffeine,设置一级缓存-->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>2.7.0</version>
+		</dependency>
 
-    </dependencies>
+	</dependencies>
 
 	<build>
 		<plugins>

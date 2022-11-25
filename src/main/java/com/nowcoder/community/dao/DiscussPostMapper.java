@@ -23,14 +23,20 @@ public interface DiscussPostMapper {
      * @param userId    用户id(如果用户id为0则表示直接从表中搜索)
      * @param offset    分页所需数据:当前页的页码
      * @param limit     分页所需数据:每页显示条数
+     * @param orderMode    帖子排序模式:默认值为0,表示按照时间进行排序(如果传入为1,则按照热度进行排序)
      * @return
      */
-    List<DiscussPost> selectDiscussPosts(int userId,int offset,int limit);
+    List<DiscussPost> selectDiscussPosts(int userId,int offset,int limit,int orderMode);
     //插入一个帖子
     int insertDiscussPost(DiscussPost discussPost);
     //通过id得到帖子的详细信息
     DiscussPost selectDiscussPostById(int id);
     //更新当前帖子的评论数量
     int updateCommentCount(int id,int commentCount);
-
+    //修改当前帖子的类型(普通/置顶)
+    int updateType(int id, int type);
+    //修改当前帖子的状态(正常/精华/拉黑)
+    int updateStatus(int id, int status);
+    //更新当前帖子的分数(从而设置是否为精华帖)
+    int updateScore(int id, double score);
 }

@@ -3,6 +3,12 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<!--访问该界面时,在此处生成CSRF令牌,以便在异步请求处理中获取
+			每次向服务器发起请求,服务器都会生成一个_CSRF对象,在此获取对应的token值-->
+<!--	<meta name="_csrf" th:content="${_csrf.token}">-->
+<!--	&lt;!&ndash;对于异步请求,通过请求头将参数传给服务器,而不是请求体.请求的消息头为key-value结构,其中value为上面的token,此处定义key=_csrf_header&ndash;&gt;-->
+<!--	<meta name="_csrf_header" th:content="${_csrf.headerName}">-->
+
 	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>	<!--绝对路径,不需要修改-->
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
 	<link rel="stylesheet" th:href="@{/css/global.css}" />	<!--相对路径,需要修改为当前项目下的相对路径-->
@@ -76,10 +82,11 @@
 					<!-- 筛选条件 -->
 					<ul class="nav nav-tabs mb-3">
 						<li class="nav-item">
-							<a class="nav-link active" href="#">最新</a>
+							<!--th:class通过请求域中的orderMode值,来点亮最新/最热按钮-->
+							<a th:class="|nav-link ${orderMode==0?'active':''}|" th:href="@{/index(orderMode=0)}">最新</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#">最热</a>
+							<a th:class="|nav-link ${orderMode==1?'active':''}|" th:href="@{/index(orderMode=1)}">最热</a>
 						</li>
 					</ul>
 					<!--我要 发布按钮:只有当前用户登陆才进行显示,即使用th:if="${loginUser != null}-->

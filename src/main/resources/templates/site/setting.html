@@ -65,19 +65,49 @@
 				<!-- 上传头像(表单提交,在表单中设置提交路径) -->
 				<h6 class="text-left text-info border-bottom pb-2">上传头像</h6>
 					<!--enctype属性,必须设置为文件上传,th:action设置上传路径-->
-				<form class="mt-5" method="post" enctype="multipart/form-data" th:action="@{/user/upload}">
+
+					<!--同步上传,发送请求到服务器,从而上传头像到本地-->
+<!--				<form class="mt-5" method="post" enctype="multipart/form-data" th:action="@{/user/upload}">-->
+<!--					<div class="form-group row mt-4">-->
+<!--						<label for="head-image" class="col-sm-2 col-form-label text-right">选择头像:</label>-->
+<!--						<div class="col-sm-10">-->
+<!--							<div class="custom-file">-->
+<!--								&lt;!&ndash;name="headerImage"一致时,前端页面上传的文件数据会自动注入到控制器形参的MultipartFile类型中）&ndash;&gt;-->
+<!--								<input type="file" th:class="|custom-file-input ${error!=null?'is-invalid':''}|"-->
+<!--									   id="head-image" name="headerImage" lang="es" required="">-->
+<!--								<label class="custom-file-label" for="head-image" data-browse="文件">选择一张图片</label>-->
+<!--								&lt;!&ndash;此处文本框class="invalid-feedback" 显示文件上传错误时提示的消息,默认不显示,与输入框th:class进行绑定-->
+<!--										只有上面file文件框 th:class中的错误提示error!=null时,此处标签有效,动态显示error属性的内容;否则为空则不显示&ndash;&gt;-->
+<!--								<div class="invalid-feedback" th:text="${error}">-->
+<!--									文件上传错误的提示消息(此处内容会被变量{error}覆盖)-->
+<!--								</div>-->
+<!--							</div>-->
+<!--						</div>-->
+<!--					</div>-->
+<!--					<div class="form-group row mt-4">-->
+<!--						<div class="col-sm-2"></div>-->
+<!--						<div class="col-sm-10 text-center">-->
+<!--							<button type="submit" class="btn btn-info text-white form-control">立即上传</button>-->
+<!--						</div>-->
+<!--					</div>-->
+<!--				</form>-->
+
+				<!--表单提交触发对应事件(在setting.js中):完成上传用户头像到七牛云服务器-->
+				<form class="mt-5" id="uploadForm">	<!--给定表单的id,在js中响应提交表单请求-->
 					<div class="form-group row mt-4">
 						<label for="head-image" class="col-sm-2 col-form-label text-right">选择头像:</label>
 						<div class="col-sm-10">
 							<div class="custom-file">
-								<!--name="headerImage"一致时,前端页面上传的文件数据会自动注入到控制器形参的MultipartFile类型中）-->
-								<input type="file" th:class="|custom-file-input ${error!=null?'is-invalid':''}|"
-									   id="head-image" name="headerImage" lang="es" required="">
+								<!--七牛云服务器响应需要接受的两个参数: 1.token  2.key-->
+									<!--表单的隐藏数据,上传给七牛云服务器时的数据名name=“token”,值即为服务器发送到表单的凭证字符-->
+								<input type="hidden" name="token" th:value="${uploadToken}">
+									<!--表单的隐藏数据,上传给七牛云服务器时的数据名name=“key”,值即为服务器发送到表单的文件名-->
+								<input type="hidden" name="key" th:value="${fileName}">
+								<!--此处上传的文件名称需要为file-->
+								<input type="file" class="custom-file-input" id="head-image" name="file" lang="es" required="">
 								<label class="custom-file-label" for="head-image" data-browse="文件">选择一张图片</label>
-								<!--此处文本框class="invalid-feedback" 显示文件上传错误时提示的消息,默认不显示,与输入框th:class进行绑定
-										只有上面file文件框 th:class中的错误提示error!=null时,此处标签有效,动态显示error属性的内容;否则为空则不显示-->
-								<div class="invalid-feedback" th:text="${error}">
-									文件上传错误的提示消息(此处内容会被变量{error}覆盖)
+								<div class="invalid-feedback">
+									该账号不存在!
 								</div>
 							</div>
 						</div>
@@ -85,10 +115,12 @@
 					<div class="form-group row mt-4">
 						<div class="col-sm-2"></div>
 						<div class="col-sm-10 text-center">
+							<!--点击立即 上传 按钮,则触发对应的ajax事件-->
 							<button type="submit" class="btn btn-info text-white form-control">立即上传</button>
 						</div>
 					</div>
 				</form>
+
 				<!-- 修改密码(表单提交,在表单中设置提交路径) -->
 				<h6 class="text-left text-info border-bottom pb-2 mt-5">修改密码</h6>
 				<form class="mt-5" method="post" th:action="@{/user/uploadPsd}">
@@ -203,6 +235,7 @@
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.js" crossorigin="anonymous"></script>
 	<script th:src="@{/js/global.js}"></script>
+	<script th:src="@{/js/setting.js}"></script>
 	<script>
 		$(function(){
 			bsCustomFileInput.init();

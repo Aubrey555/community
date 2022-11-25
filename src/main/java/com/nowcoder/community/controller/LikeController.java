@@ -8,7 +8,9 @@ import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
+import com.nowcoder.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,6 +31,8 @@ public class LikeController implements CommunityConstant {
     @Autowired  //注入EventProducer组件,用于在点赞事件被触发后,生产者组件被调用,向消息队列中发送事件对象Event
     private EventProducer eventProducer;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
     /**
      * 处理异步请求:点赞功能+点赞数量统计
      * @param entityType    对某一个实体(帖子/评论/评论的回复)进行点赞
@@ -65,6 +69,13 @@ public class LikeController implements CommunityConstant {
                     .setData("postId",postId);     //传入当前帖子的id(需要在系统通知界面,点击一个查看详情链接, 返回到此帖子所在界面)
             //6.2 调用生产者组件,将触发事件event发送到消息队列中
             eventProducer.fireEvent(event);
+        }
+
+        if(entityType == ENTITY_TYPE_POST){
+            //此时表示对帖子进行点赞,则需要计算帖子的分数,则将帖子id加入redis中,定时任务下进行计算
+            //计算帖子分数::将更新的帖子id放到redisKey键对应的Set集合中
+            String redisKey = RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(redisKey, postId);
         }
 
         //7.当前方法处理ajax异步请求,因此向页面返回JSON数据(响应编码  提示信息 业务数据)

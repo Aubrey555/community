@@ -8,7 +8,9 @@ import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.HostHolder;
+import com.nowcoder.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,8 @@ public class CommentController implements CommunityConstant {
     private EventProducer eventProducer;
     @Autowired
     private DiscussPostService discussPostService;
+    @Autowired
+    private RedisTemplate redisTemplate;
     /**
      * 实现添加评论功能
      * @param discussPostId     当前帖子的id:添加评论后需要返回到当前帖子的详情界面进行展示(而重定向到帖子的详情界面需要携带当前帖子的id,因此该添加评论的路径中携带此id)
@@ -71,6 +75,9 @@ public class CommentController implements CommunityConstant {
                     .setEntityType(ENTITY_TYPE_POST)    //实体类型为POST
                     .setEntityId(discussPostId); //得到帖子的id
             eventProducer.fireEvent(event);     //触发事件,将事件加入到消息队列
+            //计算帖子分数::将更新的帖子id放到redisKey键对应的Set集合中
+            String redisKey = RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(redisKey, discussPostId);
         }
         return "redirect:/discuss/detail/" + discussPostId;//重定向到帖子的详情界面
     }

@@ -29,7 +29,12 @@
         <if test="userId!=0">    /*动态sql语句,只有用户的userId不为0时,拼接该用户id*/
             and user_id = #{userId}
         </if>
-        order by type desc, create_time desc    /*按照帖子类型进行排序(倒序,即精华帖在前),帖子类型一致时,按照创建时间排序*/
+        <if test="orderMode == 0">    /*动态sql语句,当排序模式为0时,表示按照默认贴子发布时间进行排序*/
+            order by type desc, create_time desc    /*按照帖子类型进行排序(倒序,即置顶 ),帖子类型一致时,按照创建时间排序*/
+        </if>
+        <if test="orderMode == 1">    /*动态sql语句,当排序模式为1时,表示主要按照帖子分数进行排序(置顶先在前)*/
+            order by type desc, score desc, create_time desc    /*按照帖子类型进行排序(倒序,即置顶 -> 帖子分数),帖子类型一致时,按照创建时间排序*/
+        </if>
         limit #{offset}, #{limit}           /*分页显示数据,传入方法的参数:当前页的页码,每页需要显示的条数*/
     </select>
 
@@ -50,5 +55,17 @@
         from discuss_post
         where id = #{id}
     </select>
+    <!--修改当前帖子的类型(普通/置顶)    int updateType(int id, int type);-->
+    <update id="updateType">
+        update discuss_post set type = #{type} where id = #{id}
+    </update>
+    <!--修改当前帖子的状态(正常/精华/拉黑)     int updateStatus(int id, int status);-->
+    <update id="updateStatus">
+        update discuss_post set status = #{status} where id = #{id}
+    </update>
+    <!--更新当前帖子的分数(从而设置是否为精华帖)   int updateScore(int id, double score);-->
+    <update id="updateScore">
+        update discuss_post set score = #{score} where id = #{id}
+    </update>
 
 </mapper>

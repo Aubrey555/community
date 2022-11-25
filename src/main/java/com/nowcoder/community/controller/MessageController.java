@@ -220,7 +220,6 @@ public class MessageController implements CommunityConstant {
 
         //3.查询点赞类通知
         message = messageService.findLatestNotice(user.getId(), TOPIC_LIKE);//查询点赞主题的通知: TOPIC_LIKE
-
         if (message != null) {
             Map<String, Object> messageVO = new HashMap<>();//messageVO封装相关数据发送到界面:比如评论的用户信息,时间等,界面进行使用的对象
             messageVO.put("message", message);
